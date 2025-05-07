@@ -1,0 +1,7 @@
+This is a placeholder for user_template.xlsx.
+In a real scenario, this would be an Excel file with columns like:
+id, name, email, role, field (for student), batch (for student), section (for student), department (for faculty)
+Please create an actual Excel file with these headers for use.
+ID (Optional),Name,Email,Role (student/faculty),Field,Batch,Section,Department
+,,,student,Computer Science,2023,A,,
+,,,faculty,,,Physics,

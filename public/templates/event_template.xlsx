@@ -1,0 +1,7 @@
+This is a placeholder for event_template.xlsx.
+In a real scenario, this would be an Excel file with columns like:
+id (optional), title, description, date (YYYY-MM-DD), location, category
+Please create an actual Excel file with these headers for use.
+ID (Optional),Title,Description,Date (YYYY-MM-DD),Location,Category
+,Tech Conference,Annual tech conference for students.,2024-10-15,Main Auditorium,Academic
+,Sports Day,University annual sports day.,2024-11-05,Sports Ground,Sports
