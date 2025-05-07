@@ -41,22 +41,25 @@ const initialLeaveRequests: LeaveRequest[] = [
   { id: 'LR004', facultyName: 'Dr. Eleanor Vance', facultyId: 'F001', department: 'Physics', startDate: new Date(2024, 9, 10), endDate: new Date(2024, 9, 12), reason: 'Family vacation', status: 'Rejected', requestedAt: new Date(2024, 7, 1, 16, 0) },
 ];
 
-const departments = ["Physics", "Mathematics", "Computer Science", "All Departments"]; // For filtering
+const departments = ["Physics", "Mathematics", "Computer Science"];
+const ALL_DEPARTMENTS_FILTER_VALUE = "_ALL_DEPARTMENTS_";
+const ALL_STATUSES_FILTER_VALUE = "_ALL_STATUSES_";
+
 
 export default function LeaveRequestsPage() {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(initialLeaveRequests);
   const [filteredRequests, setFilteredRequests] = useState<LeaveRequest[]>(leaveRequests);
-  const [filterStatus, setFilterStatus] = useState<'Pending' | 'Approved' | 'Rejected' | 'All'>('Pending');
-  const [filterDepartment, setFilterDepartment] = useState<string>('All Departments');
+  const [filterStatus, setFilterStatus] = useState<'Pending' | 'Approved' | 'Rejected' | string>(ALL_STATUSES_FILTER_VALUE);
+  const [filterDepartment, setFilterDepartment] = useState<string>(ALL_DEPARTMENTS_FILTER_VALUE);
 
   const { toast } = useToast();
 
   useEffect(() => {
     let currentItems = leaveRequests;
-    if (filterStatus !== 'All') {
+    if (filterStatus !== ALL_STATUSES_FILTER_VALUE) {
       currentItems = currentItems.filter(req => req.status === filterStatus);
     }
-    if (filterDepartment !== 'All Departments') {
+    if (filterDepartment !== ALL_DEPARTMENTS_FILTER_VALUE) {
       currentItems = currentItems.filter(req => req.department === filterDepartment);
     }
     // Sort by requestedAt date, newest first for pending, then by start date
@@ -97,12 +100,12 @@ export default function LeaveRequestsPage() {
         <CardContent className="flex flex-col sm:flex-row gap-4">
           <div>
             <Label htmlFor="status-filter">Status</Label>
-            <Select value={filterStatus} onValueChange={(value: 'Pending' | 'Approved' | 'Rejected' | 'All') => setFilterStatus(value)}>
+            <Select value={filterStatus} onValueChange={(value: 'Pending' | 'Approved' | 'Rejected' | string) => setFilterStatus(value)}>
               <SelectTrigger id="status-filter" className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Statuses</SelectItem>
+                <SelectItem value={ALL_STATUSES_FILTER_VALUE}>All Statuses</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
                 <SelectItem value="Approved">Approved</SelectItem>
                 <SelectItem value="Rejected">Rejected</SelectItem>
@@ -116,6 +119,7 @@ export default function LeaveRequestsPage() {
                 <SelectValue placeholder="Filter by Department" />
               </SelectTrigger>
               <SelectContent>
+                 <SelectItem value={ALL_DEPARTMENTS_FILTER_VALUE}>All Departments</SelectItem>
                 {departments.map(dept => (
                   <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                 ))}
@@ -220,3 +224,4 @@ export default function LeaveRequestsPage() {
     </div>
   );
 }
+

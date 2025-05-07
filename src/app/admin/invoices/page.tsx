@@ -71,6 +71,8 @@ const invoiceStatuses = ['Pending', 'Paid', 'Overdue'];
 const semesters = ["Spring", "Summer", "Fall", "Winter"];
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+const ALL_STATUSES_FILTER_VALUE = "_ALL_STATUSES_";
+const ALL_TYPES_FILTER_VALUE = "_ALL_TYPES_";
 
 export default function InvoiceManagementPage() {
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
@@ -100,10 +102,10 @@ export default function InvoiceManagementPage() {
         inv.studentId.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    if (filterStatus) {
+    if (filterStatus && filterStatus !== ALL_STATUSES_FILTER_VALUE) {
       currentItems = currentItems.filter(inv => inv.status === filterStatus);
     }
-    if (filterType) {
+    if (filterType && filterType !== ALL_TYPES_FILTER_VALUE) {
       currentItems = currentItems.filter(inv => inv.type === filterType);
     }
     setFilteredInvoices(currentItems.sort((a,b) => b.issueDate.getTime() - a.issueDate.getTime()));
@@ -445,14 +447,14 @@ export default function InvoiceManagementPage() {
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Filter by Status" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value={ALL_STATUSES_FILTER_VALUE}>All Statuses</SelectItem>
                 {invoiceStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Filter by Type" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value={ALL_TYPES_FILTER_VALUE}>All Types</SelectItem>
                 {invoiceTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -554,3 +556,4 @@ function DialogModal({ isOpen, onClose, title, description, children, footer }: 
 function DialogModalFooter({children}: {children: React.ReactNode}) {
     return <div className="flex justify-end gap-2">{children}</div>
 }
+

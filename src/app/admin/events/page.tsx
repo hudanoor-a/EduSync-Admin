@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 interface Event {
   id: string;
@@ -42,6 +43,7 @@ const initialEvents: Event[] = [
 ];
 
 const eventCategories = ["Academic", "Cultural", "Sports", "Workshop", "Seminar", "Guest Lecture", "Festival", "Other"];
+const ALL_CATEGORIES_FILTER_VALUE = "_ALL_CATEGORIES_";
 
 export default function EventManagementPage() {
   const [events, setEvents] = useState<Event[]>(initialEvents);
@@ -67,7 +69,7 @@ export default function EventManagementPage() {
         event.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    if (filterCategory) {
+    if (filterCategory && filterCategory !== ALL_CATEGORIES_FILTER_VALUE) {
       currentEvents = currentEvents.filter(event => event.category === filterCategory);
     }
     setFilteredEvents(currentEvents);
@@ -197,16 +199,12 @@ export default function EventManagementPage() {
           </div>
           <div>
             <Label htmlFor="event-category">Category</Label>
-             <select
-                id="event-category"
-                value={currentEvent?.category || ''}
-                onChange={(e) => setCurrentEvent({...currentEvent, category: e.target.value})}
-                required
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="" disabled>Select Category</option>
-                {eventCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+             <Select value={currentEvent?.category || ''} onValueChange={(value) => setCurrentEvent({...currentEvent, category: value})} required>
+                <SelectTrigger id="event-category"><SelectValue placeholder="Select Category" /></SelectTrigger>
+                <SelectContent>
+                    {eventCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                </SelectContent>
+            </Select>
           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
@@ -285,14 +283,15 @@ export default function EventManagementPage() {
                             className="pl-8 sm:w-auto"
                         />
                         </div>
-                        <select
-                        value={filterCategory}
-                        onChange={(e) => setFilterCategory(e.target.value)}
-                        className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                        >
-                        <option value="">All Categories</option>
-                        {eventCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                        </select>
+                        <Select value={filterCategory} onValueChange={setFilterCategory}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectValue placeholder="Filter by Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={ALL_CATEGORIES_FILTER_VALUE}>All Categories</SelectItem>
+                                {eventCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
                         <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterCategory('');}}><ListFilter className="mr-2 h-4 w-4"/>Clear Filters</Button>
                     </div>
                     </CardHeader>

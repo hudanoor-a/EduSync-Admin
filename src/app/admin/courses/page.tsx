@@ -38,6 +38,7 @@ const initialCourses: Course[] = [
 ];
 
 const departments = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering", "Biotechnology", "Physics", "Mathematics", "Chemistry", "English", "Management"];
+const ALL_DEPARTMENTS_FILTER_VALUE = "_ALL_DEPARTMENTS_";
 
 export default function CourseManagementPage() {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
@@ -60,7 +61,7 @@ export default function CourseManagementPage() {
         course.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    if (filterDepartment) {
+    if (filterDepartment && filterDepartment !== ALL_DEPARTMENTS_FILTER_VALUE) {
       currentItems = currentItems.filter(course => course.department === filterDepartment);
     }
     setFilteredCourses(currentItems);
@@ -189,7 +190,7 @@ export default function CourseManagementPage() {
                   <SelectValue placeholder="Filter by Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Departments</SelectItem>
+                  <SelectItem value={ALL_DEPARTMENTS_FILTER_VALUE}>All Departments</SelectItem>
                   {departments.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -245,3 +246,4 @@ export default function CourseManagementPage() {
     </div>
   );
 }
+
