@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -84,7 +85,9 @@ const SidebarProvider = React.forwardRef<
         }
 
         // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        if (typeof document !== 'undefined') {
+          document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        }
       },
       [setOpenProp, open]
     )
@@ -92,8 +95,8 @@ const SidebarProvider = React.forwardRef<
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
       return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
+        ? setOpenMobile((openMobileState) => !openMobileState)
+        : setOpen((openState) => !openState)
     }, [isMobile, setOpen, setOpenMobile])
 
     // Adds a keyboard shortcut to toggle the sidebar.
@@ -162,6 +165,7 @@ const Sidebar = React.forwardRef<
     side?: "left" | "right"
     variant?: "sidebar" | "floating" | "inset"
     collapsible?: "offcanvas" | "icon" | "none"
+    defaultOpen?: boolean // Added to destructure and prevent spread
   }
 >(
   (
@@ -171,6 +175,7 @@ const Sidebar = React.forwardRef<
       collapsible = "offcanvas",
       className,
       children,
+      defaultOpen, // Destructured: will not be part of ...props
       ...props
     },
     ref
