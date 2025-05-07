@@ -45,7 +45,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar collapsible="icon" variant="sidebar" side="left" defaultOpen={true} >
+    <Sidebar collapsible="icon" variant="sidebar" side="left">
       <SidebarHeader className="p-4">
         <Link href="/admin" className="flex items-center gap-2 hover:text-primary-foreground">
           <Logo className="h-8 w-auto text-sidebar-primary" />
@@ -94,3 +94,4 @@ export function AdminSidebar() {
     </Sidebar>
   );
 }
+
