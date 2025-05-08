@@ -1,6 +1,8 @@
 "use client"
 
 // Inspired by react-hot-toast library
+import { clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 import * as React from "react"
 
 const TOAST_LIMIT = 1
@@ -12,6 +14,10 @@ const actionTypes = {
   DISMISS_TOAST: "DISMISS_TOAST",
   REMOVE_TOAST: "REMOVE_TOAST",
 } 
+
+export function cn(...inputs) {
+  return twMerge(clsx(inputs))
+}
 
 let count = 0
 
