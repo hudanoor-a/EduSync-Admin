@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -7,12 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CalendarDays, PlusCircle, Edit3, Trash2, UploadCloud, ListFilter, Download, Search } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { parseExcelFile } from '@/services/excel';
+import { useToast } from '@/hooks/use-toast.js'; // .js extension
+import { parseExcelFile } from '@/services/excel.js'; // .js extension
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.js"; // .js extension
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +40,7 @@ export default function EventManagementPage() {
   const [events, setEvents] = useState(initialEvents);
   const [filteredEvents, setFilteredEvents] = useState(events);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
+  const [filterCategory, setFilterCategory] = useState(ALL_CATEGORIES_FILTER_VALUE);
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
@@ -84,11 +83,9 @@ export default function EventManagementPage() {
     };
 
     if (editingEventId) {
-      // Simulate API call: await fetch(`/api/events/update/${editingEventId}`, { method: 'PUT', body: JSON.stringify(eventData) });
       setEvents(events.map(ev => ev.id === editingEventId ? eventData : ev));
       toast({ title: "Event Updated", description: `"${eventData.title}" has been updated.` });
     } else {
-      // Simulate API call: await fetch('/api/events/create', { method: 'POST', body: JSON.stringify(eventData) });
       setEvents([...events, eventData]);
       toast({ title: "Event Created", description: `"${eventData.title}" has been added.` });
     }
@@ -102,7 +99,6 @@ export default function EventManagementPage() {
   };
 
   const handleDelete = async (eventId) => {
-    // Simulate API call: await fetch(`/api/events/delete/${eventId}`, { method: 'DELETE' });
     setEvents(events.filter(ev => ev.id !== eventId));
     toast({ title: "Event Deleted", description: "The event has been removed." });
   };
@@ -120,7 +116,7 @@ export default function EventManagementPage() {
     }
     setUploading(true);
     try {
-      const parsedData = await parseExcelFile(file); // This would be backend in real app
+      const parsedData = await parseExcelFile(file); 
       const newEvents = parsedData.map((row, index) => ({
         id: row.id?.toString() || `EVT_F${Date.now() + index}`,
         title: row.title?.toString() || 'Untitled Event',
@@ -130,7 +126,6 @@ export default function EventManagementPage() {
         category: row.category?.toString() || 'Other',
       }));
 
-      // Simulate API call: await fetch('/api/events/create-bulk', { method: 'POST', body: JSON.stringify(newEvents) });
       setEvents(prev => [...prev, ...newEvents]);
       toast({ title: "Upload Successful", description: `${newEvents.length} events added from ${file.name}.` });
       setFile(null);
@@ -199,9 +194,9 @@ export default function EventManagementPage() {
             </Select>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
-          <Button type="submit">{editingEventId ? 'Update Event' : 'Create Event'}</Button>
+        <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
+          <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">Cancel</Button>
+          <Button type="submit" className="w-full sm:w-auto">{editingEventId ? 'Update Event' : 'Create Event'}</Button>
         </CardFooter>
       </form>
     </Card>
@@ -212,8 +207,8 @@ export default function EventManagementPage() {
       <CardHeader>
         <CardTitle>Upload Events via Excel</CardTitle>
         <CardDescription>
-            Upload an Excel file (.xlsx, .xls, .csv) with event data. Ensure columns: id (optional), title, description, date (YYYY-MM-DD), location, category.
-            <Button variant="link" size="sm" className="p-0 h-auto ml-2" asChild>
+            Upload an Excel file (.xlsx, .xls, .csv) with event data. Columns: id (optional), title, description, date (YYYY-MM-DD), location, category.
+            <Button variant="link" size="sm" className="p-0 h-auto ml-1 sm:ml-2" asChild>
                 <a href="/templates/event_template.xlsx" download data-ai-hint="download template">Download Template <Download className="ml-1 h-3 w-3"/></a>
             </Button>
         </CardDescription>
@@ -243,18 +238,18 @@ export default function EventManagementPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center"><CalendarDays className="mr-3 h-8 w-8 text-primary" /> Event Management</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><CalendarDays className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Event Management</h1>
       </div>
 
-      <Tabs defaultValue="manual">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
+      <Tabs defaultValue="manual" className="w-full">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-4">
             <TabsTrigger value="manual" onClick={() => setIsFormOpen(false)}>Manual Management</TabsTrigger>
             <TabsTrigger value="upload">Upload Events File</TabsTrigger>
         </TabsList>
         <TabsContent value="manual">
             {!isFormOpen && (
                 <div className="flex justify-end mb-4">
-                    <Button onClick={() => { setCurrentEvent({}); setEditingEventId(null); setIsFormOpen(true); }}>
+                    <Button onClick={() => { setCurrentEvent({}); setEditingEventId(null); setIsFormOpen(true); }} className="w-full sm:w-auto">
                         <PlusCircle className="mr-2 h-4 w-4" /> Add New Event
                     </Button>
                 </div>
@@ -264,19 +259,19 @@ export default function EventManagementPage() {
                     <CardHeader>
                     <CardTitle>Existing Events</CardTitle>
                     <CardDescription>View, edit, or delete university events.</CardDescription>
-                    <div className="pt-4 flex flex-col sm:flex-row gap-2">
-                        <div className="relative flex-grow">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="Search events..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-8 sm:w-auto"
-                        />
+                    <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center">
+                        <div className="relative flex-grow w-full sm:w-auto">
+                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                              type="search"
+                              placeholder="Search events..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="pl-8 w-full"
+                          />
                         </div>
                         <Select value={filterCategory} onValueChange={setFilterCategory}>
-                            <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectTrigger className="w-full sm:w-[200px]">
                                 <SelectValue placeholder="Filter by Category" />
                             </SelectTrigger>
                             <SelectContent>
@@ -284,7 +279,7 @@ export default function EventManagementPage() {
                                 {eventCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                             </SelectContent>
                         </Select>
-                        <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterCategory('');}}><ListFilter className="mr-2 h-4 w-4"/>Clear Filters</Button>
+                        <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterCategory(ALL_CATEGORIES_FILTER_VALUE);}} className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4"/>Clear Filters</Button>
                     </div>
                     </CardHeader>
                     <CardContent>
@@ -293,31 +288,31 @@ export default function EventManagementPage() {
                         {filteredEvents.map(event => (
                             <Card key={event.id} className="hover:shadow-md transition-shadow">
                             <CardHeader className="pb-3">
-                                <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="text-lg">{event.title}</CardTitle>
-                                    <p className="text-sm text-muted-foreground">{format(event.date, "PPP")} - {event.location}</p>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button variant="outline" size="icon" onClick={() => handleEdit(event)}><Edit3 className="h-4 w-4" /></Button>
-                                    <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently delete the event "{event.title}".
-                                        </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleDelete(event.id)}>Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                  <div className="flex-grow">
+                                      <CardTitle className="text-lg">{event.title}</CardTitle>
+                                      <p className="text-sm text-muted-foreground">{format(event.date, "PPP")} - {event.location}</p>
+                                  </div>
+                                  <div className="flex gap-2 self-start sm:self-center">
+                                      <Button variant="outline" size="icon" onClick={() => handleEdit(event)}><Edit3 className="h-4 w-4" /></Button>
+                                      <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                          <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                              This action cannot be undone. This will permanently delete the event "{event.title}".
+                                          </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => handleDelete(event.id)}>Delete</AlertDialogAction>
+                                          </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                      </AlertDialog>
+                                  </div>
                                 </div>
                             </CardHeader>
                             <CardContent>

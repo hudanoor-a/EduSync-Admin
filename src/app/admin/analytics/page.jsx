@@ -1,4 +1,3 @@
-
 "use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, TrendingUp, Users, FileText, DollarSign } from 'lucide-react';
@@ -14,11 +13,11 @@ const monthlyEnrollmentData = [
 ];
 
 const coursePopularityData = [
-  { name: 'Computer Science', students: 350 },
-  { name: 'Business Admin', students: 280 },
-  { name: 'Mechanical Eng.', students: 220 },
-  { name: 'Electrical Eng.', students: 180 },
-  { name: 'Civil Eng.', students: 150 },
+  { name: 'Comp Sci', students: 350 }, // Shortened for better fit
+  { name: 'Biz Admin', students: 280 },// Shortened
+  { name: 'Mech Eng', students: 220 }, // Shortened
+  { name: 'Elec Eng', students: 180 }, // Shortened
+  { name: 'Civil Eng', students: 150 },// Shortened
 ];
 
 const financialOverviewData = [
@@ -43,10 +42,12 @@ const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3
 export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight flex items-center"><BarChart3 className="mr-3 h-8 w-8 text-primary" /> Analytics & Reports</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><BarChart3 className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Analytics & Reports</h1>
+      </div>
       <CardDescription>Overview of university performance metrics and trends.</CardDescription>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Enrollments</CardTitle>
@@ -89,20 +90,20 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Monthly Enrollment Trends</CardTitle>
             <CardDescription>Student and faculty additions over the past 6 months.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[300px] sm:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyEnrollmentData}>
+              <BarChart data={monthlyEnrollmentData} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <XAxis dataKey="month" tick={{fontSize: 12}}/>
+                <YAxis tick={{fontSize: 12}}/>
                 <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
+                <Legend wrapperStyle={{fontSize: '12px'}}/>
                 <Bar dataKey="students" fill="hsl(var(--chart-1))" name="New Students" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="faculty" fill="hsl(var(--chart-2))" name="New Faculty" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -113,40 +114,40 @@ export default function AnalyticsPage() {
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Course Popularity</CardTitle>
-            <CardDescription>Distribution of students across major fields/departments.</CardDescription>
+            <CardDescription>Distribution of students across major fields.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[300px] sm:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={coursePopularityData} dataKey="students" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                <Pie data={coursePopularityData} dataKey="students" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} tick={{fontSize: 10}}>
                   {coursePopularityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                <Legend layout="vertical" align="right" verticalAlign="middle" />
+                <Legend layout="horizontal" align="center" verticalAlign="bottom" wrapperStyle={{fontSize: '12px'}}/>
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         <Card className="shadow-lg">
             <CardHeader>
                 <CardTitle>Financial Overview</CardTitle>
                 <CardDescription>Monthly income vs. expenses.</CardDescription>
             </CardHeader>
-            <CardContent className="h-[300px]">
+            <CardContent className="h-[300px] sm:h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={financialOverviewData}>
+                    <LineChart data={financialOverviewData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
+                        <XAxis dataKey="name" tick={{fontSize: 12}}/>
+                        <YAxis tick={{fontSize: 12}}/>
                         <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                        <Legend />
-                        <Line type="monotone" dataKey="income" stroke="hsl(var(--chart-1))" name="Income" strokeWidth={2} />
-                        <Line type="monotone" dataKey="expenses" stroke="hsl(var(--chart-2))" name="Expenses" strokeWidth={2} />
+                        <Legend wrapperStyle={{fontSize: '12px'}}/>
+                        <Line type="monotone" dataKey="income" stroke="hsl(var(--chart-1))" name="Income" strokeWidth={2} dot={{r:3}} activeDot={{r:5}}/>
+                        <Line type="monotone" dataKey="expenses" stroke="hsl(var(--chart-2))" name="Expenses" strokeWidth={2} dot={{r:3}} activeDot={{r:5}}/>
                     </LineChart>
                 </ResponsiveContainer>
             </CardContent>
@@ -156,15 +157,15 @@ export default function AnalyticsPage() {
                 <CardTitle>Event Attendance</CardTitle>
                 <CardDescription>Attendance numbers for recent major events.</CardDescription>
             </CardHeader>
-            <CardContent className="h-[300px]">
+            <CardContent className="h-[300px] sm:h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={eventAttendanceData} layout="vertical">
+                    <BarChart data={eventAttendanceData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="event" type="category" width={100} />
+                        <XAxis type="number" tick={{fontSize: 12}}/>
+                        <YAxis dataKey="event" type="category" width={80} tick={{fontSize: 10, width: 75}} interval={0}/>
                         <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                        <Legend />
-                        <Bar dataKey="attendance" fill="hsl(var(--chart-4))" name="Attendees" barSize={20} radius={[0, 4, 4, 0]} />
+                        <Legend wrapperStyle={{fontSize: '12px'}}/>
+                        <Bar dataKey="attendance" fill="hsl(var(--chart-4))" name="Attendees" barSize={15} radius={[0, 4, 4, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>

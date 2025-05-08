@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -16,7 +15,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { Logo } from '@/components/icons/Logo';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.js'; // .js extension
 import {
   Sidebar,
   SidebarHeader,
@@ -26,7 +25,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarSeparator,
-} from '@/components/ui/sidebar';
+} from '@/components/ui/sidebar'; // Ensure correct import
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
@@ -45,10 +44,11 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar collapsible="icon" variant="sidebar" side="left">
+    // Use collapsible="icon" for desktop icon collapse, mobile handled by Sheet
+    <Sidebar collapsible="icon" variant="sidebar" side="left"> 
       <SidebarHeader className="p-4">
-        <Link href="/admin" className="flex items-center gap-2 hover:text-primary-foreground">
-          <Logo className="h-8 w-auto text-sidebar-primary" />
+        <Link href="/admin" className="flex items-center gap-2 hover:text-primary-foreground group-data-[collapsible=icon]:justify-center">
+          <Logo className="h-8 w-auto text-sidebar-primary flex-shrink-0" />
           <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">EduCentral</span>
         </Link>
       </SidebarHeader>
@@ -62,8 +62,8 @@ export function AdminSidebar() {
                 tooltip={{children: item.label, className: "bg-primary text-primary-foreground"}}
               >
                 <Link href={item.href}>
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -76,16 +76,16 @@ export function AdminSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={pathname === '/admin/profile'} tooltip={{children: "Profile", className: "bg-primary text-primary-foreground"}}>
               <Link href="/admin/profile">
-                <UserCircle className="h-5 w-5" />
-                <span>Profile</span>
+                <UserCircle className="h-5 w-5 flex-shrink-0" />
+                <span className="group-data-[collapsible=icon]:hidden">Profile</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={{children: "Logout", className: "bg-primary text-primary-foreground"}}>
               <Link href="/login">
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
+                <LogOut className="h-5 w-5 flex-shrink-0" />
+                <span className="group-data-[collapsible=icon]:hidden">Logout</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

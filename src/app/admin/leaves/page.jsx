@@ -1,11 +1,10 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Filter, Clock, MessageSquare } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { CheckCircle2, XCircle, Filter, Clock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast.js'; // .js extension
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +16,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea'; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
@@ -51,7 +49,6 @@ export default function LeaveRequestsPage() {
     if (filterDepartment !== ALL_DEPARTMENTS_FILTER_VALUE) {
       currentItems = currentItems.filter(req => req.department === filterDepartment);
     }
-    // Sort by requestedAt date, newest first for pending, then by start date
     setFilteredRequests(currentItems.sort((a, b) => {
         if (a.status === 'Pending' && b.status !== 'Pending') return -1;
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
@@ -64,7 +61,6 @@ export default function LeaveRequestsPage() {
   }, [leaveRequests, filterStatus, filterDepartment]);
 
   const handleUpdateRequestStatus = async (requestId, newStatus) => {
-    // Simulate API call: await fetch(`/api/leaves/update/${requestId}`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) });
     setLeaveRequests(prevRequests =>
       prevRequests.map(req =>
         req.id === requestId ? { ...req, status: newStatus } : req
@@ -73,13 +69,13 @@ export default function LeaveRequestsPage() {
     toast({
       title: `Leave Request ${newStatus}`,
       description: `Request ID ${requestId} has been ${newStatus.toLowerCase()}.`,
-      variant: newStatus === 'Approved' ? 'default' : 'destructive', // default is usually success-like
+      variant: newStatus === 'Approved' ? 'default' : 'destructive',
     });
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight flex items-center"><Clock className="mr-3 h-8 w-8 text-primary" /> Faculty Leave Requests</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><Clock className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Faculty Leave Requests</h1>
 
       <Card className="shadow-lg">
         <CardHeader>
@@ -87,10 +83,10 @@ export default function LeaveRequestsPage() {
           <CardDescription>Filter leave requests by status and department.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4">
-          <div>
+          <div className="flex-1">
             <Label htmlFor="status-filter">Status</Label>
-            <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value)}>
-              <SelectTrigger id="status-filter" className="w-full sm:w-[180px]">
+            <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value || ALL_STATUSES_FILTER_VALUE)}>
+              <SelectTrigger id="status-filter" className="w-full">
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
@@ -101,10 +97,10 @@ export default function LeaveRequestsPage() {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex-1">
             <Label htmlFor="department-filter">Department</Label>
-            <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-              <SelectTrigger id="department-filter" className="w-full sm:w-[220px]">
+            <Select value={filterDepartment} onValueChange={(value) => setFilterDepartment(value || ALL_DEPARTMENTS_FILTER_VALUE)}>
+              <SelectTrigger id="department-filter" className="w-full">
                 <SelectValue placeholder="Filter by Department" />
               </SelectTrigger>
               <SelectContent>
@@ -119,9 +115,9 @@ export default function LeaveRequestsPage() {
       </Card>
 
       {filteredRequests.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredRequests.map(request => (
-            <Card key={request.id} className="shadow-md hover:shadow-lg transition-shadow">
+            <Card key={request.id} className="shadow-md hover:shadow-lg transition-shadow flex flex-col">
               <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
@@ -131,25 +127,19 @@ export default function LeaveRequestsPage() {
                     <Badge variant={
                         request.status === 'Approved' ? 'default' :
                         request.status === 'Rejected' ? 'destructive' :
-                        'secondary' // For Pending
+                        'secondary' 
                     }>
                         {request.status}
                     </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-2 flex-grow">
                 <p className="text-sm"><strong>Dates:</strong> {format(request.startDate, "PP")} - {format(request.endDate, "PP")}</p>
                 <p className="text-sm"><strong>Reason:</strong> {request.reason}</p>
                 <p className="text-xs text-muted-foreground">Requested on: {format(request.requestedAt, "PPp")}</p>
-                {request.llmGeneratedMessage && (
-                    <details className="text-xs mt-1">
-                        <summary className="cursor-pointer text-primary hover:underline">View LLM Message</summary>
-                        <p className="p-2 border rounded bg-muted/50 mt-1">{request.llmGeneratedMessage}</p>
-                    </details>
-                )}
               </CardContent>
               {request.status === 'Pending' && (
-                <CardFooter className="flex justify-end gap-2 border-t pt-4">
+                <CardFooter className="flex justify-end gap-2 border-t pt-4 mt-auto">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700">

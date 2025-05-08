@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -6,8 +5,8 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
 
-import { useIsMobile } from "@/hooks/use-mobile"
-import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile.jsx"
+import { cn } from "@/lib/utils.js"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -22,9 +21,9 @@ import {
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "16rem"
+const SIDEBAR_WIDTH = "16rem" // Default expanded width
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
+const SIDEBAR_WIDTH_ICON = "3rem" // Collapsed to icon width
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 const SidebarContext = React.createContext(null)
@@ -54,8 +53,6 @@ const SidebarProvider = React.forwardRef(
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
 
-    // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
     const setOpen = React.useCallback(
@@ -67,7 +64,6 @@ const SidebarProvider = React.forwardRef(
           _setOpen(openState)
         }
 
-        // This sets the cookie to keep the sidebar state.
         if (typeof document !== 'undefined') {
           document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
         }
@@ -75,14 +71,12 @@ const SidebarProvider = React.forwardRef(
       [setOpenProp, open]
     )
 
-    // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
       return isMobile
         ? setOpenMobile((openMobileState) => !openMobileState)
         : setOpen((openState) => !openState)
     }, [isMobile, setOpen, setOpenMobile])
 
-    // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event) => {
         if (
@@ -98,8 +92,6 @@ const SidebarProvider = React.forwardRef(
       return () => window.removeEventListener("keydown", handleKeyDown)
     }, [toggleSidebar])
 
-    // We add a state so that we can do data-state="expanded" or "collapsed".
-    // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? "expanded" : "collapsed"
 
     const contextValue = React.useMemo(
@@ -150,12 +142,12 @@ const Sidebar = React.forwardRef(
       collapsible = "offcanvas",
       className,
       children,
-      defaultOpen, // Destructured: will not be part of ...props
-      ...props
+      ...props // defaultOpen is not destructured here
     },
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { defaultOpen, ...restProps } = props; // Explicitly remove defaultOpen
 
     if (collapsible === "none") {
       return (
@@ -165,7 +157,7 @@ const Sidebar = React.forwardRef(
             className
           )}
           ref={ref}
-          {...props}
+          {...restProps} // Use restProps
         >
           {children}
         </div>
@@ -174,7 +166,7 @@ const Sidebar = React.forwardRef(
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...restProps}> {/* Use restProps */}
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
@@ -200,15 +192,8 @@ const Sidebar = React.forwardRef(
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
-        // Remove defaultOpen from being spread onto the DOM element
-        {...Object.entries(props).reduce((acc, [key, value]) => {
-          if (key !== 'defaultOpen') {
-            acc[key] = value;
-          }
-          return acc;
-        }, {})}
+        {...restProps} // Use restProps
       >
-        {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
             "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
@@ -225,18 +210,12 @@ const Sidebar = React.forwardRef(
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            // Adjust the padding for floating and inset variants.
             variant === "floating" || variant === "inset"
               ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
               : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
             className
           )}
-          {...Object.entries(props).reduce((acc, [key, value]) => {
-            if (key !== 'defaultOpen') {
-              acc[key] = value;
-            }
-            return acc;
-          }, {})}
+          {...restProps} // Use restProps
         >
           <div
             data-sidebar="sidebar"
@@ -308,8 +287,20 @@ const SidebarInset = React.forwardRef(
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-200 ease-linear",
+        // Base styles for when sidebar is part of the layout (not off-canvas)
+        "md:peer-data-[state=expanded]:pl-[--sidebar-width] md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[--sidebar-width-icon]",
+        // Styles for inset variant
+        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        // Adjust margin for inset based on expanded/collapsed state (icon only)
+        "md:peer-data-[variant=inset]:peer-data-[state=expanded]:pl-0", // Reset padding for inset when expanded as sidebar is separate
+        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-0",
+         // Adjust margin for inset when sidebar is off-canvas (effectively no margin related to sidebar)
+        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=offcanvas]:ml-0",
+        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=offcanvas]:pl-0",
+
         className
       )}
       {...props}

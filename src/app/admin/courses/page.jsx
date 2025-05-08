@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { BookOpen, PlusCircle, Edit3, Trash2, Search, ListFilter } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast.js'; // .js extension
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +28,7 @@ const initialCourses = [
 ];
 
 const departments = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering", "Biotechnology", "Physics", "Mathematics", "Chemistry", "English", "Management"];
-const ALL_DEPARTMENTS_FILTER_VALUE = "_ALL_DEPARTMENTS_";
+const ALL_DEPARTMENTS_FILTER_VALUE = "_ALL_DEPARTMENTS_"; // Ensure this is not an empty string
 
 export default function CourseManagementPage() {
   const [courses, setCourses] = useState(initialCourses);
@@ -66,7 +65,7 @@ export default function CourseManagementPage() {
     }
 
     const courseData = {
-      id: editingCourseId || currentCourse.code || `CRS${Date.now()}`, // Use code as ID if new and provided
+      id: editingCourseId || currentCourse.code || `CRS${Date.now()}`,
       code: currentCourse.code,
       title: currentCourse.title,
       description: currentCourse.description || '',
@@ -75,11 +74,9 @@ export default function CourseManagementPage() {
     };
 
     if (editingCourseId) {
-      // Simulate API call: await fetch(`/api/courses/update/${editingCourseId}`, { method: 'PUT', body: JSON.stringify(courseData) });
       setCourses(courses.map(c => c.id === editingCourseId ? courseData : c));
       toast({ title: "Course Updated", description: `"${courseData.title}" has been updated.` });
     } else {
-      // Simulate API call: await fetch('/api/courses/create', { method: 'POST', body: JSON.stringify(courseData) });
       setCourses([...courses, courseData]);
       toast({ title: "Course Created", description: `"${courseData.title}" has been added.` });
     }
@@ -93,7 +90,6 @@ export default function CourseManagementPage() {
   };
 
   const handleDelete = async (courseId) => {
-    // Simulate API call: await fetch(`/api/courses/delete/${courseId}`, { method: 'DELETE' });
     setCourses(courses.filter(c => c.id !== courseId));
     toast({ title: "Course Deleted", description: "The course has been removed." });
   };
@@ -134,16 +130,16 @@ export default function CourseManagementPage() {
             </div>
             <div>
               <Label htmlFor="course-department">Department</Label>
-              <Select value={currentCourse?.department || ''} onValueChange={(value) => setCurrentCourse({...currentCourse, department: value})} required>
+              <Select value={currentCourse?.department || ''} onValueChange={(value) => setCurrentCourse({...currentCourse, department: value})}>
                 <SelectTrigger id="course-department"><SelectValue placeholder="Select Department" /></SelectTrigger>
                 <SelectContent>{departments.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
-          <Button type="submit">{editingCourseId ? 'Update Course' : 'Add Course'}</Button>
+        <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
+          <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">Cancel</Button>
+          <Button type="submit" className="w-full sm:w-auto">{editingCourseId ? 'Update Course' : 'Add Course'}</Button>
         </CardFooter>
       </form>
     </Card>
@@ -152,9 +148,9 @@ export default function CourseManagementPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center"><BookOpen className="mr-3 h-8 w-8 text-primary" /> Course Management</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><BookOpen className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Course Management</h1>
         {!isFormOpen && (
-          <Button onClick={() => { setCurrentCourse({}); setEditingCourseId(null); setIsFormOpen(true); }}>
+          <Button onClick={() => { setCurrentCourse({}); setEditingCourseId(null); setIsFormOpen(true); }} className="w-full sm:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Course
           </Button>
         )}
@@ -164,20 +160,20 @@ export default function CourseManagementPage() {
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Existing Courses</CardTitle>
-            <CardDescription>View, edit, or delete university courses. Only manual addition is supported.</CardDescription>
-            <div className="pt-4 flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-grow">
+            <CardDescription>View, edit, or delete university courses.</CardDescription>
+            <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center">
+              <div className="relative flex-grow w-full sm:w-auto">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search courses by code, title..."
+                  placeholder="Search courses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 sm:w-auto"
+                  className="pl-8 w-full"
                 />
               </div>
               <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Filter by Department" />
                 </SelectTrigger>
                 <SelectContent>
@@ -185,7 +181,7 @@ export default function CourseManagementPage() {
                   {departments.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterDepartment(ALL_DEPARTMENTS_FILTER_VALUE);}}><ListFilter className="mr-2 h-4 w-4"/>Clear Filters</Button>
+              <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterDepartment(ALL_DEPARTMENTS_FILTER_VALUE);}} className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4"/>Clear Filters</Button>
             </div>
           </CardHeader>
           <CardContent>

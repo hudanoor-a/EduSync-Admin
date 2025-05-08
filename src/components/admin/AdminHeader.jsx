@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import {
@@ -12,15 +11,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, User, Settings, LayoutGrid } from 'lucide-react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar'; // Use the responsive trigger
 
 export function AdminHeader() {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-      <div className="md:hidden">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 lg:px-8">
+      <div className="md:hidden"> {/* Only show trigger on small screens */}
         <SidebarTrigger />
       </div>
-      <div className="ml-auto flex items-center gap-4">
+      {/* Spacer to push elements to the right */}
+      <div className="flex-1" /> 
+      <div className="flex items-center gap-2 sm:gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -28,7 +29,7 @@ export function AdminHeader() {
               size="icon"
               className="overflow-hidden rounded-full"
             >
-              <Avatar>
+              <Avatar className="h-8 w-8"> {/* Slightly smaller avatar */}
                 <AvatarImage src="https://picsum.photos/40/40?grayscale" alt="Admin Avatar" data-ai-hint="profile avatar" />
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>

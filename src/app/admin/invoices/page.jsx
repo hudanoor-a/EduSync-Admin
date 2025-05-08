@@ -1,14 +1,13 @@
-
 "use client";
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Edit3, Trash2, Search, Filter, PlusCircle, Bot, CalendarIcon, Eye } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { generateInvoiceDescriptions } from '@/ai/flows/generate-invoice-descriptions';
+import { useToast } from '@/hooks/use-toast.js'; // .js extension
+import { generateInvoiceDescriptions } from '@/ai/flows/generate-invoice-descriptions.js'; // .js extension
 import {
   Table,
   TableBody,
@@ -31,7 +30,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, getYear, getMonth } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.js'; // .js extension
 
 
 const initialInvoices = [
@@ -44,7 +43,7 @@ const students = [
   { id: 'S001', name: 'Alice Johnson' },
   { id: 'S002', name: 'Bob Williams' },
   { id: 'S003', name: 'Charlie Brown' },
-]; // In real app, this would come from API/DB
+];
 
 const invoiceTypes = ['Semester Fees', 'Hostel Dues', 'Exam Fees', 'Other'];
 const invoiceStatuses = ['Pending', 'Paid', 'Overdue'];
@@ -58,8 +57,8 @@ export default function InvoiceManagementPage() {
   const [invoices, setInvoices] = useState(initialInvoices);
   const [filteredInvoices, setFilteredInvoices] = useState(invoices);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState(ALL_STATUSES_FILTER_VALUE);
+  const [filterType, setFilterType] = useState(ALL_TYPES_FILTER_VALUE);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentInvoice, setCurrentInvoice] = useState(null);
@@ -113,18 +112,16 @@ export default function InvoiceManagementPage() {
       studentName: student.name,
       issueDate: currentInvoice.issueDate,
       dueDate: currentInvoice.dueDate,
-      items: currentInvoice.items, // Cast as it should be valid by now
+      items: currentInvoice.items,
       totalAmount: totalAmount,
       status: currentInvoice.status,
       type: currentInvoice.type,
     };
 
     if (editingInvoiceId) {
-      // Simulate API PUT /api/invoices/{id}
       setInvoices(invoices.map(inv => inv.id === editingInvoiceId ? invoiceData : inv));
       toast({ title: "Invoice Updated", description: `Invoice ${invoiceData.id} has been updated.` });
     } else {
-      // Simulate API POST /api/invoices
       setInvoices([...invoices, invoiceData]);
       toast({ title: "Invoice Created", description: `Invoice ${invoiceData.id} has been created.` });
     }
@@ -132,13 +129,12 @@ export default function InvoiceManagementPage() {
   };
 
   const handleEdit = (invoice) => {
-    setCurrentInvoice({ ...invoice, items: invoice.items.map(item => ({...item})) }); // Deep copy items
+    setCurrentInvoice({ ...invoice, items: invoice.items.map(item => ({...item})) });
     setEditingInvoiceId(invoice.id);
     setIsFormOpen(true);
   };
 
   const handleDelete = async (invoiceId) => {
-    // Simulate API DELETE /api/invoices/{id}
     setInvoices(invoices.filter(inv => inv.id !== invoiceId));
     toast({ title: "Invoice Deleted", description: `Invoice ${invoiceId} has been removed.` });
   };
@@ -161,7 +157,12 @@ export default function InvoiceManagementPage() {
       if (!prev || !prev.items) return prev;
       const newItems = [...prev.items];
       const item = { ...newItems[index] };
-      item[field] = value; // Type assertion for simplicity
+      
+      if (field === 'quantity' || field === 'unitPrice') {
+        item[field] = parseFloat(value) || 0; // Ensure numeric for calculation
+      } else {
+        item[field] = value;
+      }
 
       if (field === 'quantity' || field === 'unitPrice') {
         item.total = (item.quantity || 0) * (item.unitPrice || 0);
@@ -177,9 +178,6 @@ export default function InvoiceManagementPage() {
       items: prev?.items?.filter((_, i) => i !== index) || []
     }));
   };
-
-  const currentYear = getYear(new Date());
-  const years = Array.from({length: 5}, (_, i) => (currentYear - 2 + i).toString());
 
   const handleAIGenerateInvoices = async () => {
     setAiGenerating(true);
@@ -201,24 +199,20 @@ export default function InvoiceManagementPage() {
     };
 
     try {
-      // In a real app, this might call a backend that then calls the Genkit flow
-      // and generates invoices for all relevant students.
-      // For this demo, we'll generate one sample description.
       const result = await generateInvoiceDescriptions(input);
       const description = result.description;
       
-      // Create dummy invoices for all students (example)
       const newAiInvoices = students.map(student => ({
         id: `AI_INV${Date.now()}_${student.id}`,
         studentId: student.id,
         studentName: student.name,
         issueDate: aiTargetDate,
-        dueDate: new Date(new Date(aiTargetDate).setDate(aiTargetDate.getDate() + 15)), // Due in 15 days
+        dueDate: new Date(new Date(aiTargetDate).setDate(aiTargetDate.getDate() + 15)), 
         items: [{
           id: 'ai_item1',
           description: description,
           quantity: 1,
-          unitPrice: aiInvoiceType === 'semesterFees' ? 1500 : 350, // Example prices
+          unitPrice: aiInvoiceType === 'semesterFees' ? 1500 : 350, 
           total: aiInvoiceType === 'semesterFees' ? 1500 : 350,
         }],
         totalAmount: aiInvoiceType === 'semesterFees' ? 1500 : 350,
@@ -249,7 +243,7 @@ export default function InvoiceManagementPage() {
       <div className="space-y-4 py-4">
         <div>
           <Label htmlFor="ai-invoice-type">Invoice Type</Label>
-          <Select value={aiInvoiceType} onValueChange={(v) => setAiInvoiceType(v)}>
+          <Select value={aiInvoiceType} onValueChange={(v) => setAiInvoiceType(v || 'semesterFees')}>
             <SelectTrigger id="ai-invoice-type"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="semesterFees">Semester Fees</SelectItem>
@@ -261,7 +255,7 @@ export default function InvoiceManagementPage() {
         {aiInvoiceType === 'semesterFees' && (
           <div>
             <Label htmlFor="ai-semester">Semester</Label>
-            <Select value={aiSemester} onValueChange={setAiSemester}>
+            <Select value={aiSemester} onValueChange={(v) => setAiSemester(v || semesters[0])}>
               <SelectTrigger id="ai-semester"><SelectValue placeholder="Select Semester" /></SelectTrigger>
               <SelectContent>{semesters.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
             </Select>
@@ -297,8 +291,8 @@ export default function InvoiceManagementPage() {
 
       </div>
       <DialogModalFooter>
-        <Button variant="outline" onClick={() => setIsAIGenerationOpen(false)} disabled={aiGenerating}>Cancel</Button>
-        <Button onClick={handleAIGenerateInvoices} disabled={aiGenerating}>
+        <Button variant="outline" onClick={() => setIsAIGenerationOpen(false)} disabled={aiGenerating} className="w-full sm:w-auto">Cancel</Button>
+        <Button onClick={handleAIGenerateInvoices} disabled={aiGenerating} className="w-full sm:w-auto">
           {aiGenerating ? 'Generating...' : 'Generate Invoices'}
         </Button>
       </DialogModalFooter>
@@ -314,18 +308,18 @@ export default function InvoiceManagementPage() {
         description={editingInvoiceId ? `Update details for invoice ${editingInvoiceId}.` : 'Fill in the details for the new invoice.'}
     >
     <form onSubmit={handleFormSubmit}>
-      <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="space-y-4 py-4 max-h-[70vh] sm:max-h-[60vh] overflow-y-auto pr-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="student-id">Student</Label>
-            <Select value={currentInvoice?.studentId || ''} onValueChange={(value) => setCurrentInvoice({...currentInvoice, studentId: value})} required>
+            <Select value={currentInvoice?.studentId || ''} onValueChange={(value) => setCurrentInvoice({...currentInvoice, studentId: value})} >
               <SelectTrigger id="student-id"><SelectValue placeholder="Select Student" /></SelectTrigger>
               <SelectContent>{students.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.id})</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
             <Label htmlFor="invoice-type">Invoice Type</Label>
-            <Select value={currentInvoice?.type || ''} onValueChange={(value) => setCurrentInvoice({...currentInvoice, type: value})} required>
+            <Select value={currentInvoice?.type || ''} onValueChange={(value) => setCurrentInvoice({...currentInvoice, type: value})} >
               <SelectTrigger id="invoice-type"><SelectValue placeholder="Select Type" /></SelectTrigger>
               <SelectContent>{invoiceTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
             </Select>
@@ -341,7 +335,7 @@ export default function InvoiceManagementPage() {
                         {currentInvoice?.issueDate ? format(currentInvoice.issueDate, "PPP") : <span>Pick issue date</span>}
                     </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.issueDate} onSelect={(d) => setCurrentInvoice({...currentInvoice, issueDate: d})} initialFocus /></PopoverContent>
+                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.issueDate} onSelect={(d) => setCurrentInvoice({...currentInvoice, issueDate: d || undefined})} initialFocus /></PopoverContent>
                 </Popover>
             </div>
             <div>
@@ -353,7 +347,7 @@ export default function InvoiceManagementPage() {
                         {currentInvoice?.dueDate ? format(currentInvoice.dueDate, "PPP") : <span>Pick due date</span>}
                     </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.dueDate} onSelect={(d) => setCurrentInvoice({...currentInvoice, dueDate: d})} initialFocus /></PopoverContent>
+                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.dueDate} onSelect={(d) => setCurrentInvoice({...currentInvoice, dueDate: d || undefined})} initialFocus /></PopoverContent>
                 </Popover>
             </div>
         </div>
@@ -362,31 +356,31 @@ export default function InvoiceManagementPage() {
           <Label>Invoice Items</Label>
           {currentInvoice?.items?.map((item, index) => (
             <Card key={item.id} className="p-3">
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-end">
-                <Input placeholder="Description" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} required />
-                <Input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))} className="w-20" min="1" required />
-                <Input type="number" placeholder="Unit Price" value={item.unitPrice} onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value))} className="w-28" step="0.01" min="0" required />
-                <Input type="number" placeholder="Total" value={item.total} readOnly className="w-28 bg-muted/50" />
-                <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(index)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_100px_auto] gap-2 items-end">
+                <Input placeholder="Description" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} required className="sm:col-span-1"/>
+                <Input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} className="w-full sm:w-20" min="1" required />
+                <Input type="number" placeholder="Unit Price" value={item.unitPrice} onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)} className="w-full sm:w-28" step="0.01" min="0" required />
+                <Input type="number" placeholder="Total" value={item.total.toFixed(2)} readOnly className="w-full sm:w-28 bg-muted/50" />
+                <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(index)} className="text-destructive place-self-end sm:place-self-center"><Trash2 className="h-4 w-4" /></Button>
               </div>
             </Card>
           ))}
-          <Button type="button" variant="outline" size="sm" onClick={handleAddItem}><PlusCircle className="mr-2 h-4 w-4" />Add Item</Button>
+          <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="w-full sm:w-auto"><PlusCircle className="mr-2 h-4 w-4" />Add Item</Button>
         </div>
 
         <div>Total Amount: <span className="font-semibold">${currentInvoice?.items?.reduce((sum, item) => sum + (item.total || 0), 0).toFixed(2)}</span></div>
 
         <div>
             <Label htmlFor="invoice-status">Status</Label>
-            <Select value={currentInvoice?.status || ''} onValueChange={(value) => setCurrentInvoice({...currentInvoice, status: value})} required>
+            <Select value={currentInvoice?.status || ''} onValueChange={(value) => setCurrentInvoice({...currentInvoice, status: value})} >
                 <SelectTrigger id="invoice-status"><SelectValue placeholder="Select Status" /></SelectTrigger>
                 <SelectContent>{invoiceStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent>
             </Select>
         </div>
       </div>
       <DialogModalFooter>
-          <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
-          <Button type="submit">{editingInvoiceId ? 'Update Invoice' : 'Create Invoice'}</Button>
+          <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">Cancel</Button>
+          <Button type="submit" className="w-full sm:w-auto">{editingInvoiceId ? 'Update Invoice' : 'Create Invoice'}</Button>
       </DialogModalFooter>
     </form>
     </DialogModal>
@@ -395,12 +389,12 @@ export default function InvoiceManagementPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center"><FileText className="mr-3 h-8 w-8 text-primary" /> Invoice Management</h1>
-        <div className="flex gap-2">
-            <Button onClick={() => setIsAIGenerationOpen(true)}>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><FileText className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Invoice Management</h1>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button onClick={() => setIsAIGenerationOpen(true)} className="w-full sm:w-auto">
                 <Bot className="mr-2 h-4 w-4" /> Generate with AI
             </Button>
-            <Button onClick={() => { setCurrentInvoice({ items: [{ id: `item${Date.now()}`, description: '', quantity: 1, unitPrice: 0, total: 0 }] }); setEditingInvoiceId(null); setIsFormOpen(true); }}>
+            <Button onClick={() => { setCurrentInvoice({ items: [{ id: `item${Date.now()}`, description: '', quantity: 1, unitPrice: 0, total: 0 }], issueDate: new Date(), dueDate: new Date(new Date().setDate(new Date().getDate() + 15)) }); setEditingInvoiceId(null); setIsFormOpen(true); }} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" /> Create Invoice
             </Button>
         </div>
@@ -413,15 +407,15 @@ export default function InvoiceManagementPage() {
         <CardHeader>
           <CardTitle>Existing Invoices</CardTitle>
           <CardDescription>View, edit, or delete university invoices.</CardDescription>
-          <div className="pt-4 flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-grow">
+          <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center">
+            <div className="relative flex-grow w-full sm:w-auto">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search by Invoice ID, Student Name/ID..."
+                placeholder="Search Invoices..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 sm:w-auto"
+                className="pl-8 w-full"
               />
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -438,17 +432,17 @@ export default function InvoiceManagementPage() {
                 {invoiceTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterStatus(''); setFilterType('');}}><Filter className="mr-2 h-4 w-4"/>Clear</Button>
+            <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterStatus(ALL_STATUSES_FILTER_VALUE); setFilterType(ALL_TYPES_FILTER_VALUE);}} className="w-full sm:w-auto"><Filter className="mr-2 h-4 w-4"/>Clear</Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Student</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Issue Date</TableHead>
+                <TableHead className="hidden md:table-cell">Type</TableHead>
+                <TableHead className="hidden lg:table-cell">Issue Date</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
@@ -459,9 +453,9 @@ export default function InvoiceManagementPage() {
               {filteredInvoices.length > 0 ? filteredInvoices.map(invoice => (
                 <TableRow key={invoice.id} className={invoice.status === 'Overdue' ? 'bg-destructive/10 hover:bg-destructive/20' : ''}>
                   <TableCell className="font-medium">{invoice.id}</TableCell>
-                  <TableCell>{invoice.studentName} <span className="text-xs text-muted-foreground">({invoice.studentId})</span></TableCell>
-                  <TableCell>{invoice.type}</TableCell>
-                  <TableCell>{format(invoice.issueDate, "PP")}</TableCell>
+                  <TableCell>{invoice.studentName} <span className="text-xs text-muted-foreground hidden sm:inline">({invoice.studentId})</span></TableCell>
+                  <TableCell className="hidden md:table-cell">{invoice.type}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{format(invoice.issueDate, "PP")}</TableCell>
                   <TableCell>{format(invoice.dueDate, "PP")}</TableCell>
                   <TableCell className="text-right">${invoice.totalAmount.toFixed(2)}</TableCell>
                   <TableCell>
@@ -472,7 +466,7 @@ export default function InvoiceManagementPage() {
                         invoice.status === 'Overdue' && "bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100"
                     )}>{invoice.status}</span>
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
+                  <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(invoice)} className="hover:text-primary"><Edit3 className="h-4 w-4" /></Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -505,25 +499,25 @@ export default function InvoiceManagementPage() {
 }
 
 
-function DialogModal({ isOpen, onClose, title, description, children, footer }) {
+function DialogModal({ isOpen, onClose, title, description, children }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <Card className="w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4 backdrop-blur-sm">
+            <Card className="w-full max-w-xs sm:max-w-md md:max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
                 <CardHeader>
                     <CardTitle>{title}</CardTitle>
                     {description && <CardDescription>{description}</CardDescription>}
                 </CardHeader>
-                <CardContent className="flex-1 overflow-y-auto">
+                <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6 pt-0">
                     {children}
                 </CardContent>
-                {footer && <CardFooter className="border-t pt-4">{footer}</CardFooter>}
+                {/* Footer is now part of renderInvoiceForm/renderAIGenerationForm for specific button layouts */}
             </Card>
         </div>
     );
 }
 
 function DialogModalFooter({children}) {
-    return <div className="flex justify-end gap-2">{children}</div>
+    return <CardFooter className="border-t pt-4 flex flex-col sm:flex-row justify-end gap-2">{children}</CardFooter>
 }

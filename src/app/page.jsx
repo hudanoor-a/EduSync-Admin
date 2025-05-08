@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -10,10 +9,10 @@ export default function HomePage() {
       <div className="mb-12">
         <Logo className="h-20 w-auto text-primary dark:text-primary" />
       </div>
-      <h1 className="text-5xl font-bold text-foreground mb-6">
+      <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
         Welcome to EduCentral
       </h1>
-      <p className="text-xl text-muted-foreground mb-10 max-w-2xl">
+      <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl">
         The all-in-one platform for modern university management. Streamline operations, enhance communication, and empower your institution.
       </p>
       <Button asChild size="lg" className="shadow-lg hover:shadow-primary/30 transition-shadow duration-300 group">

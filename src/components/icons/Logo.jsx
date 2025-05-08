@@ -1,4 +1,3 @@
-
 export function Logo(props) {
   return (
     <svg
@@ -9,7 +8,8 @@ export function Logo(props) {
       aria-label="EduCentral Logo"
       {...props}
     >
-      <rect width="200" height="50" rx="5" fill="currentColor" className="text-primary dark:text-primary" />
+      {/* Ensure currentColor works as expected or hardcode the HSL variable */}
+      <rect width="200" height="50" rx="5" fill="hsl(var(--primary))" /> 
       <text
         x="50%"
         y="50%"

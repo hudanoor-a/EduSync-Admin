@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -48,8 +47,8 @@ const ChartContainer = React.forwardRef(
 ChartContainer.displayName = "Chart"
 
 const ChartStyle = ({ id, config }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme || config.color
+  const colorConfig = Object.entries(config ?? {}).filter( // Added nullish coalescing for config
+    ([, configItem]) => configItem.theme || configItem.color // Renamed config to configItem
   )
 
   if (!colorConfig.length) {
@@ -113,7 +112,7 @@ const ChartTooltipContent = React.forwardRef(
       const itemConfig = getPayloadConfigFromPayload(config, item, key)
       const value =
         !labelKey && typeof label === "string"
-          ? config[label]?.label || label
+          ? config?.[label]?.label || label // Added optional chaining
           : itemConfig?.label
 
       if (labelFormatter) {
@@ -158,7 +157,7 @@ const ChartTooltipContent = React.forwardRef(
           {payload.map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+            const indicatorColor = color || item.payload?.fill || item.color // Added optional chaining for payload
 
             return (
               <div
@@ -175,7 +174,7 @@ const ChartTooltipContent = React.forwardRef(
                     {itemConfig?.icon ? (
                       <itemConfig.icon />
                     ) : (
-                      !hideIndicator && (
+                      !hideIndicator && indicatorColor && ( // Check if indicatorColor exists
                         <div
                           className={cn(
                             "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
@@ -262,14 +261,16 @@ const ChartLegendContent = React.forwardRef(
               {itemConfig?.icon && !hideIcon ? (
                 <itemConfig.icon />
               ) : (
-                <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
-                />
+                 item.color && ( // Check if item.color exists
+                    <div
+                    className="h-2 w-2 shrink-0 rounded-[2px]"
+                    style={{
+                        backgroundColor: item.color,
+                    }}
+                    />
+                 )
               )}
-              {itemConfig?.label}
+              {itemConfig?.label || item.value} {/* Display item.value as fallback */}
             </div>
           )
         })}
@@ -285,7 +286,7 @@ function getPayloadConfigFromPayload(
   payload,
   key
 ) {
-  if (typeof payload !== "object" || payload === null) {
+  if (typeof payload !== "object" || payload === null || !config) { // Added check for config
     return undefined
   }
 

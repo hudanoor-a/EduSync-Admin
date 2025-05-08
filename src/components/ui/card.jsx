@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
@@ -28,10 +27,10 @@ CardHeader.displayName = "CardHeader"
 
 const CardTitle = React.forwardRef(
   ({ className, ...props }, ref) => (
-  <div
+  <div // Changed from h3 to div for more flexibility, style as needed
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-2xl font-semibold leading-none tracking-tight", // Kept original styling
       className
     )}
     {...props}
@@ -41,7 +40,7 @@ CardTitle.displayName = "CardTitle"
 
 const CardDescription = React.forwardRef(
   ({ className, ...props }, ref) => (
-  <div
+  <div // Changed from p to div
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
     {...props}

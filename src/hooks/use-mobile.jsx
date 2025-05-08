@@ -1,24 +1,30 @@
-
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+const MOBILE_BREAKPOINT = 768 // md breakpoint in Tailwind
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState(undefined)
 
   React.useEffect(() => {
     if (typeof window === 'undefined') {
-      // Return early if running on the server
+      // Default to false on the server, will be corrected on client mount
+      setIsMobile(false); 
       return;
     }
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
 
-  return !!isMobile
+    const checkSize = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+
+    // Initial check
+    checkSize();
+
+    // Listen for resize events
+    window.addEventListener("resize", checkSize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("resize", checkSize);
+  }, []) // Empty dependency array ensures this runs only once on mount and cleanup on unmount
+
+  return isMobile; // Return the state
 }

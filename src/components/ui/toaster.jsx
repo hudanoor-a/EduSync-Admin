@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast.js" // .js extension
 import {
   Toast,
   ToastClose,
