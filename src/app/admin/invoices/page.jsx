@@ -5,8 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Edit3, Trash2, Search, Filter, PlusCircle, Bot, CalendarIcon, Eye } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast.js'; // .js extension
 import { generateInvoiceDescriptions } from '@/ai/flows/generate-invoice-descriptions.js'; // .js extension
 import {
   Table,
@@ -30,6 +28,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, getYear, getMonth } from 'date-fns';
+import { FileText, Edit3, Trash2, Search, Filter, PlusCircle, Bot, CalendarIcon, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils.js'; // .js extension
 
 

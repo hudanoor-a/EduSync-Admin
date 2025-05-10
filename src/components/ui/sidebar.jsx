@@ -288,18 +288,17 @@ const SidebarInset = React.forwardRef(
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-200 ease-linear",
+        "p-4 sm:p-6",
         // Base styles for when sidebar is part of the layout (not off-canvas)
-        "md:peer-data-[state=expanded]:pl-[--sidebar-width] md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[--sidebar-width-icon]",
+        "md:peer-data-[state=expanded]:pl-0 md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[--sidebar-width-icon]",
+        "md:peer-data-[variant=inset]:peer-data-[state=expanded]:pl-0",
         // Styles for inset variant
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
-        "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         // Adjust margin for inset based on expanded/collapsed state (icon only)
-        "md:peer-data-[variant=inset]:peer-data-[state=expanded]:pl-0", // Reset padding for inset when expanded as sidebar is separate
         "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
         "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-0",
          // Adjust margin for inset when sidebar is off-canvas (effectively no margin related to sidebar)
         "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=offcanvas]:ml-0",
-        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[collapsible=offcanvas]:pl-0",
 
         className
       )}

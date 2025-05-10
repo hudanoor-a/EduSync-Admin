@@ -185,5 +185,6 @@ export default function MessagesPage() {
         </CardContent>
       </Card>
     </div>
+    </div>
   );
 }
