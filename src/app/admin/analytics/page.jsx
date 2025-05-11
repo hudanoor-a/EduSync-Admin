@@ -2,8 +2,8 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Users, FileText, DollarSign, User, Activity, BookOpen, UserCheck, UserX, ArrowDownUp, CheckSquare, PieChart as PieChartIcon, LineChart as LineChartIcon, AreaChart as AreaChartIconLucide } from 'lucide-react'; // Renamed AreaChart import
-import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart } from 'recharts';
+import { BarChart3, TrendingUp, Users, FileText, DollarSign, User, Activity, BookOpen, UserCheck, UserX, ArrowDownUp, CheckSquare, PieChart as PieChartIcon, LineChart as LineChartIconLucide, AreaChart as AreaChartIconLucide } from 'lucide-react';
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { cn } from '@/lib/utils.js';
@@ -68,13 +68,14 @@ export default function AnalyticsPage() {
   const [clientReady, setClientReady] = useState(false);
 
   useEffect(() => {
-    setClientReady(true); // Component has mounted, client is ready
+    setClientReady(true); 
 
     const checkMobile = () => setIsMobileView(window.innerWidth < 768);
-    // No need for `typeof window !== "undefined"` check here, as useEffect only runs on client
-    checkMobile(); // Initial check
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile); // Cleanup
+    if (typeof window !== "undefined") { // Ensure window is defined (runs only on client)
+        checkMobile(); 
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile); 
+    }
   }, []);
 
   const renderChartPlaceholder = (titleText = "Chart Title", descriptionText = "Chart description.") => (
@@ -205,7 +206,7 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-             <Card className="shadow-lg lg:col-span-2"> {/* Spans two columns on large screens */}
+             <Card className="shadow-lg lg:col-span-2"> 
               <CardHeader>
                 <CardTitle className="flex items-center"><TrendingUp className="mr-2 h-5 w-5 text-primary"/>Student Performance Overview</CardTitle>
                 <CardDescription>Average GPA and Pass Rates per semester.</CardDescription>
