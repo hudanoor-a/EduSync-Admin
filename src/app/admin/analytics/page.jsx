@@ -2,9 +2,13 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Users, FileText, DollarSign, User, Activity, BookOpen, UserCheck, UserX, ArrowDownUp, CheckSquare, PieChart as PieChartIcon, LineChart as LineChartIcon, AreaChart } from 'lucide-react';
-import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, LineChart, Line, PieChart, Pie, Cell, Area } from 'recharts';
+import { BarChart3, TrendingUp, Users, FileText, DollarSign, User, Activity, BookOpen, UserCheck, UserX, ArrowDownUp, CheckSquare, PieChart as PieChartIcon, LineChart as LineChartIcon, AreaChart as AreaChartIconLucide } from 'lucide-react'; // Renamed AreaChart import
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Link from 'next/link';
+import { cn } from '@/lib/utils.js';
+import { buttonVariants } from '@/components/ui/button.jsx';
+
 
 // Student related data
 const studentEnrollmentByYear = [
@@ -59,22 +63,37 @@ const COLORS_GENERAL = ['hsl(var(--chart-5))', 'hsl(var(--chart-1))', 'hsl(var(-
 
 
 export default function AnalyticsPage() {
-  const [analyticsView, setAnalyticsView] = useState('student'); 
+  const [analyticsView, setAnalyticsView] = useState('student');
   const [isMobileView, setIsMobileView] = useState(false);
+  const [clientReady, setClientReady] = useState(false);
 
   useEffect(() => {
+    setClientReady(true); // Component has mounted, client is ready
+
     const checkMobile = () => setIsMobileView(window.innerWidth < 768);
-     if (typeof window !== "undefined") {
-      checkMobile();
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
-    }
+    // No need for `typeof window !== "undefined"` check here, as useEffect only runs on client
+    checkMobile(); // Initial check
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile); // Cleanup
   }, []);
+
+  const renderChartPlaceholder = (titleText = "Chart Title", descriptionText = "Chart description.") => (
+    <Card className="shadow-lg">
+      <CardHeader>
+        <CardTitle className="h-6 bg-muted rounded w-3/4 animate-pulse">{/*titleText*/}</CardTitle>
+        <CardDescription className="h-4 bg-muted rounded w-1/2 mt-1 animate-pulse">{/*descriptionText*/}</CardDescription>
+      </CardHeader>
+      <CardContent className="h-[300px] sm:h-[350px] flex items-center justify-center">
+        <p className="text-muted-foreground">Loading chart...</p>
+      </CardContent>
+    </Card>
+  );
+
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><BarChart3 className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Analytics & Reports</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><BarChart3 className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Analytics &amp; Reports</h1>
         <Select value={analyticsView} onValueChange={setAnalyticsView}>
             <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Select View" />
@@ -89,7 +108,8 @@ export default function AnalyticsPage() {
       <CardDescription>Overview of university performance metrics and trends. Current view: {analyticsView.charAt(0).toUpperCase() + analyticsView.slice(1)}</CardDescription>
 
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="shadow-lg">
+        <Link href="/admin/users" className="block">
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Enrollments</CardTitle>
             <Users className="h-5 w-5 text-primary" />
@@ -99,7 +119,9 @@ export default function AnalyticsPage() {
             <p className="text-xs text-muted-foreground">+8% from last year</p>
           </CardContent>
         </Card>
-        <Card className="shadow-lg">
+        </Link>
+        <Link href="/admin/academics?view=student&mode=attendance" className="block">
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Pass Rate</CardTitle>
             <CheckSquare className="h-5 w-5 text-green-500 dark:text-green-400" />
@@ -109,7 +131,9 @@ export default function AnalyticsPage() {
             <p className="text-xs text-muted-foreground">Across all courses</p>
           </CardContent>
         </Card>
-         <Card className="shadow-lg">
+        </Link>
+        <Link href="/admin/analytics?view=faculty" className="block">
+         <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Faculty Publications</CardTitle>
             <BookOpen className="h-5 w-5 text-purple-500 dark:text-purple-400" />
@@ -119,7 +143,9 @@ export default function AnalyticsPage() {
             <p className="text-xs text-muted-foreground">+10% from last year</p>
           </CardContent>
         </Card>
-         <Card className="shadow-lg">
+        </Link>
+        <Link href="/admin/invoices" className="block">
+         <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
             <DollarSign className="h-5 w-5 text-orange-500 dark:text-orange-400" />
@@ -129,13 +155,22 @@ export default function AnalyticsPage() {
             <p className="text-xs text-muted-foreground">Annual projection</p>
           </CardContent>
         </Card>
+        </Link>
       </div>
 
       {analyticsView === 'student' && (
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          {!clientReady ? (
+            <>
+              {renderChartPlaceholder("Enrollment Trend by Year", "Growth of student population.")}
+              {renderChartPlaceholder("Student Demographics", "Breakdown of student types.")}
+              <div className="lg:col-span-2">{renderChartPlaceholder("Student Performance Overview", "Average GPA and Pass Rates per semester.")}</div>
+            </>
+          ) : (
+            <>
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center"><Users className="mr-2 h-5 w-5 text-primary"/>Enrollment Trend by Year</CardTitle>
+                <CardTitle className="flex items-center"><AreaChartIconLucide className="mr-2 h-5 w-5 text-primary"/>Enrollment Trend by Year</CardTitle>
                 <CardDescription>Growth of student population.</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] sm:h-[350px]">
@@ -190,11 +225,20 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+            </>
+          )}
         </div>
       )}
 
       {analyticsView === 'faculty' && (
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          {!clientReady ? (
+             <>
+              {renderChartPlaceholder("Faculty Publication Trend", "Annual research output.")}
+              {renderChartPlaceholder("Faculty Experience Distribution", "Years of experience among faculty.")}
+            </>
+          ) : (
+            <>
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center"><BookOpen className="mr-2 h-5 w-5 text-primary"/>Faculty Publication Trend</CardTitle>
@@ -232,11 +276,20 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+            </>
+          )}
         </div>
       )}
-      
+
       {analyticsView === 'general' && (
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 mt-6">
+          {!clientReady ? (
+             <>
+              {renderChartPlaceholder("Resource Utilization", "Usage percentage of key university resources.")}
+              {renderChartPlaceholder("Departmental Budget Allocation", "Financial distribution across departments.")}
+            </>
+          ) : (
+            <>
             <Card className="shadow-lg">
                 <CardHeader>
                     <CardTitle className="flex items-center"><ArrowDownUp className="mr-2 h-5 w-5 text-primary"/>Resource Utilization</CardTitle>
@@ -274,6 +327,8 @@ export default function AnalyticsPage() {
                     </ResponsiveContainer>
                 </CardContent>
             </Card>
+            </>
+          )}
         </div>
       )}
       <CardDescription className="text-center text-sm pt-4">
@@ -282,5 +337,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-
-    
