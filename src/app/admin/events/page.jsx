@@ -6,12 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CalendarDays, PlusCircle, Edit3, Trash2, UploadCloud, ListFilter, Download, Search } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast.js'; // .js extension
-import { parseExcelFile } from '@/services/excel.js'; // .js extension
+import { useToast } from '@/hooks/use-toast.js';
+import { parseExcelFile } from '@/services/excel.js';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils.js"; // .js extension
+import { cn } from "@/lib/utils.js";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +33,7 @@ const initialEvents = [
   { id: 'EVT003', title: 'Cultural Night 2024', description: 'An evening showcasing diverse cultural performances.', date: new Date(2024, 9, 20), location: 'Open Air Theatre', category: 'Cultural' },
 ];
 
-const eventCategories = ["Academic", "Cultural", "Sports", "Workshop", "Seminar", "Guest Lecture", "Festival", "Other"];
+const eventCategories = ["Academic", "Cultural", "Sports", "Workshop", "Seminar", "Guest Lecture", "Festival", "Other"].filter(c => c !== "");
 const ALL_CATEGORIES_FILTER_VALUE = "_ALL_CATEGORIES_";
 
 export default function EventManagementPage() {
@@ -42,7 +42,7 @@ export default function EventManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState(ALL_CATEGORIES_FILTER_VALUE);
   
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false); // For manual add/edit form
   const [currentEvent, setCurrentEvent] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
 
@@ -56,14 +56,14 @@ export default function EventManagementPage() {
     if (searchTerm) {
       currentEvents = currentEvents.filter(event =>
         event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
         event.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     if (filterCategory && filterCategory !== ALL_CATEGORIES_FILTER_VALUE) {
       currentEvents = currentEvents.filter(event => event.category === filterCategory);
     }
-    setFilteredEvents(currentEvents);
+    setFilteredEvents(currentEvents.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   }, [events, searchTerm, filterCategory]);
 
   const handleFormSubmit = async (e) => {
@@ -77,7 +77,7 @@ export default function EventManagementPage() {
       id: editingEventId || `EVT${Date.now()}`,
       title: currentEvent.title,
       description: currentEvent.description || '',
-      date: currentEvent.date,
+      date: currentEvent.date, // Ensure this is a Date object
       location: currentEvent.location,
       category: currentEvent.category,
     };
@@ -93,14 +93,15 @@ export default function EventManagementPage() {
   };
 
   const handleEdit = (event) => {
-    setCurrentEvent({ ...event });
+    setCurrentEvent({ ...event, date: new Date(event.date) }); // Ensure date is a Date object
     setEditingEventId(event.id);
     setIsFormOpen(true);
   };
 
   const handleDelete = async (eventId) => {
+    const eventToDelete = events.find(e => e.id === eventId);
     setEvents(events.filter(ev => ev.id !== eventId));
-    toast({ title: "Event Deleted", description: "The event has been removed." });
+    toast({ title: "Event Deleted", description: `Event "${eventToDelete?.title}" has been removed.` });
   };
   
   const resetForm = () => {
@@ -121,17 +122,19 @@ export default function EventManagementPage() {
         id: row.id?.toString() || `EVT_F${Date.now() + index}`,
         title: row.title?.toString() || 'Untitled Event',
         description: row.description?.toString() || '',
-        date: row.date ? new Date(row.date.toString()) : new Date(),
+        date: row.date ? new Date(row.date.toString()) : new Date(), // Ensure valid date
         location: row.location?.toString() || 'N/A',
-        category: row.category?.toString() || 'Other',
-      }));
+        category: row.category?.toString() || (eventCategories.length > 0 ? eventCategories[0] : 'Other'),
+      })).filter(ne => !events.some(ee => ee.id === ne.id)); // Avoid duplicate IDs
+
+      const skippedCount = parsedData.length - newEvents.length;
 
       setEvents(prev => [...prev, ...newEvents]);
-      toast({ title: "Upload Successful", description: `${newEvents.length} events added from ${file.name}.` });
+      toast({ title: "Upload Successful", description: `${newEvents.length} events added. ${skippedCount > 0 ? `${skippedCount} events skipped due to duplicate ID.` : ''}` });
       setFile(null);
     } catch (error) {
       console.error("Upload error:", error);
-      toast({ title: "Upload Failed", description: "Could not process the file.", variant: "destructive" });
+      toast({ title: "Upload Failed", description: "Could not process the file. Check format.", variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -166,13 +169,13 @@ export default function EventManagementPage() {
                     )}
                   >
                     <CalendarDays className="mr-2 h-4 w-4" />
-                    {currentEvent?.date ? format(currentEvent.date, "PPP") : <span>Pick a date</span>}
+                    {currentEvent?.date ? format(new Date(currentEvent.date), "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={currentEvent?.date}
+                    selected={currentEvent?.date ? new Date(currentEvent.date) : undefined} // Ensure date is Date object
                     onSelect={(date) => setCurrentEvent({...currentEvent, date: date || undefined })}
                     initialFocus
                   />
@@ -208,14 +211,14 @@ export default function EventManagementPage() {
         <CardTitle>Upload Events via Excel</CardTitle>
         <CardDescription>
             Upload an Excel file (.xlsx, .xls, .csv) with event data. Columns: id (optional), title, description, date (YYYY-MM-DD), location, category.
-            <Button variant="link" size="sm" className="p-0 h-auto ml-1 sm:ml-2" asChild>
+            <Button variant="link" size="sm" className="p-0 h-auto ml-1 sm:ml-2 align-baseline" asChild>
                 <a href="/templates/event_template.xlsx" download data-ai-hint="download template">Download Template <Download className="ml-1 h-3 w-3"/></a>
             </Button>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-            <Label htmlFor="event-file-upload" className="block mb-2 text-sm font-medium">Choose Excel File</Label>
+        <div className="space-y-2">
+            <Label htmlFor="event-file-upload" className="block text-sm font-medium">Choose Excel File</Label>
             <Input 
             id="event-file-upload" 
             type="file" 
@@ -223,10 +226,10 @@ export default function EventManagementPage() {
             onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} 
             className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
-            {file && <p className="text-sm text-muted-foreground mt-2">Selected: {file.name}</p>}
+            {file && <p className="text-sm text-muted-foreground mt-1">Selected: {file.name}</p>}
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="mt-2"> {/* Added margin-top for spacing */}
         <Button onClick={handleFileUpload} disabled={uploading || !file} className="w-full md:w-auto">
           <UploadCloud className="mr-2 h-4 w-4" />
           {uploading ? 'Uploading...' : 'Upload Events'}
@@ -241,93 +244,97 @@ export default function EventManagementPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><CalendarDays className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Event Management</h1>
       </div>
 
-      <Tabs defaultValue="manual" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-4">
-            <TabsTrigger value="manual" onClick={() => setIsFormOpen(false)}>Manual Management</TabsTrigger>
-            <TabsTrigger value="upload">Upload Events File</TabsTrigger>
+      <Tabs defaultValue="view" className="w-full">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4"> {/* Changed to 3 cols for better balance */}
+            <TabsTrigger value="view" onClick={() => setIsFormOpen(false)}>View Events</TabsTrigger>
+            <TabsTrigger value="add" onClick={() => { setCurrentEvent({date: new Date()}); setEditingEventId(null); setIsFormOpen(true);}}>Add/Edit Manually</TabsTrigger>
+            <TabsTrigger value="upload" onClick={() => setIsFormOpen(false)}>Upload Excel</TabsTrigger>
         </TabsList>
-        <TabsContent value="manual">
-            {!isFormOpen && (
+        
+        <TabsContent value="view">
+             {!isFormOpen && ( // Moved Add New Event button here for View tab context
                 <div className="flex justify-end mb-4">
-                    <Button onClick={() => { setCurrentEvent({}); setEditingEventId(null); setIsFormOpen(true); }} className="w-full sm:w-auto">
+                    <Button onClick={() => { setCurrentEvent({date: new Date()}); setEditingEventId(null); setIsFormOpen(true); document.querySelector('[data-radix-collection-item][value="add"]')?.click();}} className="w-full sm:w-auto">
                         <PlusCircle className="mr-2 h-4 w-4" /> Add New Event
                     </Button>
                 </div>
             )}
-            {isFormOpen ? renderEventForm() : (
-                <Card className="shadow-lg">
-                    <CardHeader>
-                    <CardTitle>Existing Events</CardTitle>
-                    <CardDescription>View, edit, or delete university events.</CardDescription>
-                    <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center">
-                        <div className="relative flex-grow w-full sm:w-auto">
-                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                              type="search"
-                              placeholder="Search events..."
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              className="pl-8 w-full"
-                          />
-                        </div>
-                        <Select value={filterCategory} onValueChange={setFilterCategory}>
-                            <SelectTrigger className="w-full sm:w-[200px]">
-                                <SelectValue placeholder="Filter by Category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={ALL_CATEGORIES_FILTER_VALUE}>All Categories</SelectItem>
-                                {eventCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterCategory(ALL_CATEGORIES_FILTER_VALUE);}} className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4"/>Clear Filters</Button>
+            <Card className="shadow-lg">
+                <CardHeader>
+                <CardTitle>Existing Events</CardTitle>
+                <CardDescription>View, edit, or delete university events.</CardDescription>
+                <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center flex-wrap">
+                    <div className="relative flex-grow w-full sm:w-auto min-w-[150px]">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search events..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-8 w-full"
+                        />
                     </div>
-                    </CardHeader>
-                    <CardContent>
-                    {filteredEvents.length > 0 ? (
-                        <div className="space-y-4">
-                        {filteredEvents.map(event => (
-                            <Card key={event.id} className="hover:shadow-md transition-shadow">
-                            <CardHeader className="pb-3">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                  <div className="flex-grow">
-                                      <CardTitle className="text-lg">{event.title}</CardTitle>
-                                      <p className="text-sm text-muted-foreground">{format(event.date, "PPP")} - {event.location}</p>
-                                  </div>
-                                  <div className="flex gap-2 self-start sm:self-center">
-                                      <Button variant="outline" size="icon" onClick={() => handleEdit(event)}><Edit3 className="h-4 w-4" /></Button>
-                                      <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                          <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                              This action cannot be undone. This will permanently delete the event "{event.title}".
-                                          </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => handleDelete(event.id)}>Delete</AlertDialogAction>
-                                          </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                      </AlertDialog>
-                                  </div>
+                    <Select value={filterCategory} onValueChange={setFilterCategory}>
+                        <SelectTrigger className="w-full sm:w-[200px]">
+                            <SelectValue placeholder="Filter by Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={ALL_CATEGORIES_FILTER_VALUE}>All Categories</SelectItem>
+                            {eventCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Button variant="outline" onClick={() => {setSearchTerm(''); setFilterCategory(ALL_CATEGORIES_FILTER_VALUE);}} className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4"/>Clear Filters</Button>
+                </div>
+                </CardHeader>
+                <CardContent>
+                {filteredEvents.length > 0 ? (
+                    <div className="space-y-4">
+                    {filteredEvents.map(event => (
+                        <Card key={event.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div className="flex-grow">
+                                    <CardTitle className="text-lg">{event.title}</CardTitle>
+                                    <p className="text-sm text-muted-foreground">{format(new Date(event.date), "PPP")} - {event.location}</p>
                                 </div>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm">{event.description}</p>
-                                <p className="text-xs mt-2 text-muted-foreground">Category: {event.category}</p>
-                            </CardContent>
-                            </Card>
-                        ))}
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground py-8">No events found matching your criteria. {isFormOpen ? '' : 'Click "Add New Event" to create one.'}</p>
-                    )}
-                    </CardContent>
-                </Card>
-            )}
+                                <div className="flex gap-2 self-start sm:self-center mt-2 sm:mt-0">
+                                    <Button variant="outline" size="icon" onClick={() => { handleEdit(event);  document.querySelector('[data-radix-collection-item][value="add"]')?.click(); }}><Edit3 className="h-4 w-4" /></Button>
+                                    <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently delete the event "{event.title}".
+                                        </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDelete(event.id)}>Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm">{event.description}</p>
+                            <p className="text-xs mt-2 text-muted-foreground">Category: {event.category}</p>
+                        </CardContent>
+                        </Card>
+                    ))}
+                    </div>
+                ) : (
+                    <p className="text-center text-muted-foreground py-8">No events found matching your criteria.</p>
+                )}
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="add">
+            {isFormOpen && renderEventForm()}
+            {!isFormOpen && <p className="text-muted-foreground text-center py-4">Select "Add/Edit Manually" tab again or click an "Edit" button on an event to open the form.</p>}
         </TabsContent>
         <TabsContent value="upload">
           {renderFileUpload()}

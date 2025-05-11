@@ -2,7 +2,7 @@
 import { StatCard } from '@/components/admin/StatCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, BookOpen, CalendarCheck2, FileText, AlertTriangle } from 'lucide-react';
+import { Users, BookOpen, CalendarCheck2, FileText, AlertTriangle, Building } from 'lucide-react'; // Added Building icon
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -14,13 +14,14 @@ const recentActivity = [
   { id: 4, activity: 'Dr. Smith updated course "Advanced AI".', timestamp: '2 days ago', category: 'Courses' },
 ];
 
-const userStatsData = [
-  { name: 'Jan', students: 400, faculty: 40 },
-  { name: 'Feb', students: 300, faculty: 42 },
-  { name: 'Mar', students: 500, faculty: 45 },
-  { name: 'Apr', students: 450, faculty: 43 },
-  { name: 'May', students: 600, faculty: 48 },
-  { name: 'Jun', students: 550, faculty: 50 },
+// Sample data for students per department
+const studentsPerDepartmentData = [
+  { name: 'Comp Sci', students: 350 },
+  { name: 'Mech Eng', students: 220 },
+  { name: 'Elec Eng', students: 180 },
+  { name: 'Civil Eng', students: 150 },
+  { name: 'Biz Admin', students: 280 },
+  { name: 'Physics', students: 90 },
 ];
 
 const upcomingEvents = [
@@ -36,46 +37,53 @@ export default function AdminDashboardPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button asChild variant="outline" className="w-full sm:w-auto">
-            <Link href="/admin/users/add-student">Add Student</Link>
+            <Link href="/admin/users">Add Student</Link> {/* Assuming /admin/users has add student functionality */}
           </Button>
           <Button asChild className="w-full sm:w-auto">
-            <Link href="/admin/events/add">Create Event</Link>
+            <Link href="/admin/events">Create Event</Link> {/* Assuming /admin/events has create event functionality */}
           </Button>
         </div>
       </div>
 
-      {/* Responsive grid for StatCards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Students" value="1,250" icon={Users} description="+20 this month" iconClassName="text-blue-500" />
-        <StatCard title="Total Faculty" value="150" icon={BookOpen} description="+5 this month" iconClassName="text-green-500" />
-        <StatCard title="Upcoming Events" value="5" icon={CalendarCheck2} description="2 within next week" iconClassName="text-purple-500" />
-        <StatCard title="Pending Invoices" value="25" icon={FileText} description="$12,500 due" iconClassName="text-orange-500" />
+        <Link href="/admin/users" className="block">
+          <StatCard title="Total Students" value="1,250" icon={Users} description="+20 this month" iconClassName="text-blue-500" />
+        </Link>
+        <Link href="/admin/users" className="block"> {/* Assuming faculty are also managed under /admin/users */}
+          <StatCard title="Total Faculty" value="150" icon={Users} description="+5 this month" iconClassName="text-green-500" />
+        </Link>
+        <Link href="/admin/events" className="block">
+          <StatCard title="Upcoming Events" value="5" icon={CalendarCheck2} description="2 within next week" iconClassName="text-purple-500" />
+        </Link>
+        <Link href="/admin/invoices" className="block">
+          <StatCard title="Pending Invoices" value="25" icon={FileText} description="$12,500 due" iconClassName="text-orange-500" />
+        </Link>
       </div>
 
-      {/* Responsive grid for main content cards */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>User Statistics</CardTitle>
-            <CardDescription>Student and faculty enrollment over the past 6 months.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsBarChart data={userStatsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{fontSize: 12}}/>
-                <YAxis tick={{fontSize: 12}}/>
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
-                 />
-                <Legend wrapperStyle={{fontSize: '12px'}}/>
-                <Bar dataKey="students" fill="hsl(var(--primary))" name="Students" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="faculty" fill="hsl(var(--accent))" name="Faculty" radius={[4, 4, 0, 0]} />
-              </RechartsBarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <Link href="/admin/analytics" className="block">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader>
+              <CardTitle className="flex items-center"><Building className="mr-2 h-5 w-5 text-primary" /> Students per Department</CardTitle>
+              <CardDescription>Distribution of students across major departments.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart data={studentsPerDepartmentData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{fontSize: 10}}/>
+                  <YAxis tick={{fontSize: 10}}/>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                   />
+                  <Legend wrapperStyle={{fontSize: '12px'}}/>
+                  <Bar dataKey="students" fill="hsl(var(--primary))" name="Students" radius={[4, 4, 0, 0]} />
+                </RechartsBarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card className="shadow-lg">
           <CardHeader>
@@ -109,19 +117,21 @@ export default function AdminDashboardPage() {
          <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Upcoming Events</CardTitle>
-            <CardDescription>Events scheduled in the near future.</CardDescription>
+            <CardDescription>Events scheduled in the near future. <Link href="/admin/events" className="text-primary hover:underline text-sm">View All</Link></CardDescription>
           </CardHeader>
           <CardContent>
             {upcomingEvents.length > 0 ? (
               <ul className="space-y-3">
                 {upcomingEvents.map(event => (
-                  <li key={event.id} className="flex flex-col sm:flex-row items-start justify-between p-3 rounded-md border hover:bg-muted/50 transition-colors gap-2 sm:gap-0">
+                 <Link href="/admin/events" key={event.id} className="block">
+                  <li className="flex flex-col sm:flex-row items-start justify-between p-3 rounded-md border hover:bg-muted/50 transition-colors gap-2 sm:gap-0">
                     <div>
                       <p className="font-semibold">{event.name}</p>
                       <p className="text-sm text-muted-foreground">{event.type}</p>
                     </div>
                     <p className="text-sm text-muted-foreground whitespace-nowrap">{new Date(event.date).toLocaleDateString()}</p>
                   </li>
+                 </Link>
                 ))}
               </ul>
             ) : (

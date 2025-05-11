@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, UserPlus, Edit3, UploadCloud, Search, Download } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast.js'; // .js extension
-import { parseExcelFile } from '@/services/excel.js'; // .js extension
+import { useToast } from '@/hooks/use-toast.js';
+import { parseExcelFile } from '@/services/excel.js';
 
 
 const initialUsers = [
@@ -18,10 +18,10 @@ const initialUsers = [
   { id: 'F002', name: 'Prof. David Brown', email: 'david@example.com', role: 'faculty', department: 'Mathematics' },
 ];
 
-const fields = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering", "Biotechnology"];
-const batches = ["2021", "2022", "2023", "2024"];
-const sections = ["A", "B", "C", "D"];
-const departments = ["Physics", "Mathematics", "Chemistry", "English", "Management"];
+const fields = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering", "Biotechnology"].filter(f => f !== "");
+const batches = ["2021", "2022", "2023", "2024"].filter(b => b !== "");
+const sections = ["A", "B", "C", "D"].filter(s => s !== "");
+const departments = ["Physics", "Mathematics", "Chemistry", "English", "Management", "Computer Science", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering", "Biotechnology"].filter(d => d !== "");
 
 
 export default function UserManagementPage() {
@@ -46,7 +46,6 @@ export default function UserManagementPage() {
 
   const { toast } = useToast();
 
-  // Filter users based on type and search term for the "Edit Users" list
   useEffect(() => {
     let currentUsers = users.filter(u => u.role === userType);
     if (searchTerm) {
@@ -75,29 +74,28 @@ export default function UserManagementPage() {
         email: row.email?.toString() || 'N/A',
         role: userType,
         ...(userType === 'student' && {
-          // Prioritize filters over file data if filters are set
-          field: uploadField || row.field?.toString() || 'N/A',
-          batch: uploadBatch || row.batch?.toString() || 'N/A',
-          section: uploadSection || row.section?.toString() || 'N/A',
+          field: uploadField || row.field?.toString() || (fields.length > 0 ? fields[0] : 'N/A'),
+          batch: uploadBatch || row.batch?.toString() || (batches.length > 0 ? batches[0] : 'N/A'),
+          section: uploadSection || row.section?.toString() || (sections.length > 0 ? sections[0] : 'N/A'),
         }),
         ...(userType === 'faculty' && {
-          // Prioritize filter over file data
-          department: uploadDepartment || row.department?.toString() || 'N/A',
+          department: uploadDepartment || row.department?.toString() || (departments.length > 0 ? departments[0] : 'N/A'),
         }),
-      }));
+      })).filter(nu => !users.some(eu => eu.id === nu.id || eu.email === nu.email)); // Avoid duplicates by ID or email
+
+      const skippedCount = parsedData.length - newUsers.length;
 
       setUsers(prev => [...prev, ...newUsers]);
 
-      toast({ title: "Upload Successful", description: `${newUsers.length} users added from ${file.name}.` });
+      toast({ title: "Upload Successful", description: `${newUsers.length} users added. ${skippedCount > 0 ? `${skippedCount} users skipped due to duplicate ID/email.` : ''}` });
       setFile(null);
-      // Reset upload filters after successful upload
       setUploadField('');
       setUploadBatch('');
       setUploadSection('');
       setUploadDepartment('');
     } catch (error) {
       console.error("Upload error:", error);
-      toast({ title: "Upload Failed", description: "Could not process the file.", variant: "destructive" });
+      toast({ title: "Upload Failed", description: "Could not process the file. Check format and data.", variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -110,40 +108,51 @@ export default function UserManagementPage() {
   };
 
   const handleSaveEdit = async () => {
-    if (!editUser) return;
+    if (!editUser || !editFormData.name || !editFormData.email) {
+        toast({ title: "Missing fields", description: "Name and Email are required.", variant: "destructive"});
+        return;
+    }
     
-    setUsers(prevUsers => prevUsers.map(u => u.id === editUser.id ? { ...u, ...editFormData } : u));
+    setUsers(prevUsers => prevUsers.map(u => u.id === editUser.id ? { ...editUser, ...editFormData } : u));
     toast({ title: "User Updated", description: `${editFormData.name || editUser.name} details saved.` });
-    setEditUser(null); // Close edit form
+    setEditUser(null);
     setEditFormData({});
-    //setActionType('add'); // Optionally switch back to add tab
   };
 
    const handleCancelEdit = () => {
     setEditUser(null);
     setEditFormData({});
-    // Optionally switch back to 'add' tab if desired
-    // setActionType('add');
   };
 
 
-  const handleAddNewManual = async (newUser) => {
+  const handleAddNewManual = async (newUserData) => {
+    if (!newUserData.name || !newUserData.email) {
+        toast({ title: "Missing fields", description: "Name and Email are required.", variant: "destructive"});
+        return;
+    }
     const completeNewUser = {
       id: `NEW${userType.charAt(0).toUpperCase()}${Date.now()}`,
-      name: newUser.name || 'N/A',
-      email: newUser.email || 'N/A',
+      name: newUserData.name,
+      email: newUserData.email,
       role: userType,
       ...(userType === 'student' && {
-        field: newUser.field || 'N/A',
-        batch: newUser.batch || 'N/A',
-        section: newUser.section || 'N/A',
+        field: newUserData.field || (fields.length > 0 ? fields[0] : 'N/A'),
+        batch: newUserData.batch || (batches.length > 0 ? batches[0] : 'N/A'),
+        section: newUserData.section || (sections.length > 0 ? sections[0] : 'N/A'),
       }),
       ...(userType === 'faculty' && {
-        department: newUser.department || 'N/A',
+        department: newUserData.department || (departments.length > 0 ? departments[0] : 'N/A'),
       }),
     };
+
+    if (users.some(u => u.email === completeNewUser.email)) {
+        toast({ title: "Duplicate Email", description: "A user with this email already exists.", variant: "destructive"});
+        return;
+    }
+
     setUsers(prev => [...prev, completeNewUser]);
     toast({ title: "User Added", description: `${completeNewUser.name} added successfully.` });
+    return true; // Indicate success
   };
 
 
@@ -161,8 +170,8 @@ export default function UserManagementPage() {
           <CardHeader>
             <CardTitle>Upload {userType === 'student' ? 'Students' : 'Faculty'} via Excel</CardTitle>
             <CardDescription>
-              Set default values below (optional, overrides file values if set). Upload an Excel file (.xlsx, .xls, .csv).
-              <Button variant="link" size="sm" className="p-0 h-auto ml-1 sm:ml-2" asChild>
+              Set default values below (optional, overrides file values if set). Columns: id (optional), name, email. For students: field, batch, section. For faculty: department.
+              <Button variant="link" size="sm" className="p-0 h-auto ml-1 sm:ml-2 align-baseline" asChild>
                 <a href="/templates/user_template.xlsx" download data-ai-hint="download template">Download Template <Download className="ml-1 h-3 w-3"/></a>
               </Button>
             </CardDescription>
@@ -202,8 +211,8 @@ export default function UserManagementPage() {
                 </Select>
               </div>
             )}
-            <div>
-              <Label htmlFor="file-upload" className="block mb-2 text-sm font-medium">Choose Excel File</Label>
+            <div className="space-y-2">
+              <Label htmlFor="file-upload" className="block text-sm font-medium">Choose Excel File</Label>
               <Input 
                 id="file-upload" 
                 type="file" 
@@ -211,11 +220,11 @@ export default function UserManagementPage() {
                 onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} 
                 className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
               />
-              {file && <p className="text-sm text-muted-foreground mt-2">Selected: {file.name}</p>}
+              {file && <p className="text-sm text-muted-foreground mt-1">Selected: {file.name}</p>}
             </div>
           </CardContent>
-          <CardFooter>
-            <Button onClick={handleFileUpload} disabled={uploading || !file} className="w-full md:w-auto">
+          <CardFooter className="mt-2">
+            <Button onClick={handleFileUpload} disabled={uploading || !file} className="w-full sm:w-auto">
               <UploadCloud className="mr-2 h-4 w-4" />
               {uploading ? 'Uploading...' : `Upload ${userType === 'student' ? 'Students' : 'Faculty'}`}
             </Button>
@@ -230,7 +239,7 @@ export default function UserManagementPage() {
       <Card>
         <CardHeader>
           <CardTitle>Edit {editUser.role === 'student' ? 'Student' : 'Faculty'}: {editUser.name}</CardTitle>
-          <CardDescription>Modify the user details below.</CardDescription>
+          <CardDescription>Modify the user details below. User ID: {editUser.id}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -306,7 +315,7 @@ export default function UserManagementPage() {
                     <p className="font-medium">{user.name} <span className="text-xs text-muted-foreground">({user.id})</span></p>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => handleEditUser(user)} className="w-full sm:w-auto self-end sm:self-center">
+                  <Button variant="outline" size="sm" onClick={() => handleEditUser(user)} className="w-full sm:w-auto self-end sm:self-center mt-2 sm:mt-0">
                     <Edit3 className="mr-2 h-4 w-4" /> Edit
                   </Button>
                 </div>
@@ -327,8 +336,7 @@ export default function UserManagementPage() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start">
-        {/* Options Card */}
-        <Card className="w-full md:w-1/3 lg:w-1/4 shadow-lg self-start md:sticky md:top-4">
+        <Card className="w-full md:w-1/3 lg:w-1/4 shadow-lg self-start md:sticky md:top-6"> {/* Adjusted sticky top */}
           <CardHeader>
             <CardTitle>Options</CardTitle>
             <CardDescription>Choose user type and action.</CardDescription>
@@ -357,7 +365,6 @@ export default function UserManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Main Action Area */}
         <div className="flex-1 w-full md:w-2/3 lg:w-3/4">
           {actionType === 'add' ? renderAddForm() : renderEditForm()}
         </div>
@@ -369,8 +376,9 @@ export default function UserManagementPage() {
 
 function ManualAddForm({ userType, onSubmit }) {
   const [formData, setFormData] = useState({});
+  const { toast } = useToast();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || 
         (userType === 'student' && (!formData.field || !formData.batch || !formData.section)) ||
@@ -378,11 +386,12 @@ function ManualAddForm({ userType, onSubmit }) {
         toast({title: "Missing Fields", description: "Please fill all required fields.", variant: "destructive"});
         return;
     }
-    onSubmit(formData);
-    setFormData({}); // Reset form
+    const success = await onSubmit(formData);
+    if (success) {
+        setFormData({}); // Reset form only on success
+    }
   };
 
-  const { toast } = useToast(); // Need toast here too for validation
 
   return (
      <Card>
@@ -438,7 +447,7 @@ function ManualAddForm({ userType, onSubmit }) {
           )}
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full md:w-auto">
+          <Button type="submit" className="w-full sm:w-auto">
             <UserPlus className="mr-2 h-4 w-4" /> Add {userType === 'student' ? 'Student' : 'Faculty'}
           </Button>
         </CardFooter>

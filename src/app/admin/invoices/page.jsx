@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { generateInvoiceDescriptions } from '@/ai/flows/generate-invoice-descriptions.js'; // .js extension
+import { generateInvoiceDescriptions } from '@/ai/flows/generate-invoice-descriptions.js';
 import {
   Table,
   TableBody,
@@ -28,8 +28,9 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, getYear, getMonth } from 'date-fns';
-import { FileText, Edit3, Trash2, Search, Filter, PlusCircle, Bot, CalendarIcon, Eye } from 'lucide-react';
-import { cn } from '@/lib/utils.js'; // .js extension
+import { FileText, Edit3, Trash2, Search, Filter, PlusCircle, Bot, CalendarIcon as CalendarIconLucide, Eye } from 'lucide-react'; // Renamed CalendarIcon
+import { cn } from '@/lib/utils.js';
+import { useToast } from '@/hooks/use-toast.js';
 
 
 const initialInvoices = [
@@ -44,10 +45,10 @@ const students = [
   { id: 'S003', name: 'Charlie Brown' },
 ];
 
-const invoiceTypes = ['Semester Fees', 'Hostel Dues', 'Exam Fees', 'Other'];
-const invoiceStatuses = ['Pending', 'Paid', 'Overdue'];
-const semesters = ["Spring", "Summer", "Fall", "Winter"];
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const invoiceTypes = ['Semester Fees', 'Hostel Dues', 'Exam Fees', 'Other'].filter(type => type !== ""); // Ensure no empty strings
+const invoiceStatuses = ['Pending', 'Paid', 'Overdue'].filter(status => status !== ""); // Ensure no empty strings
+const semesters = ["Spring", "Summer", "Fall", "Winter"].filter(s => s !== "");
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].filter(m => m !== "");
 
 const ALL_STATUSES_FILTER_VALUE = "_ALL_STATUSES_";
 const ALL_TYPES_FILTER_VALUE = "_ALL_TYPES_";
@@ -66,7 +67,7 @@ export default function InvoiceManagementPage() {
   const [isAIGenerationOpen, setIsAIGenerationOpen] = useState(false);
   const [aiInvoiceType, setAiInvoiceType] = useState('semesterFees');
   const [aiTargetDate, setAiTargetDate] = useState(new Date());
-  const [aiSemester, setAiSemester] = useState(semesters[0]);
+  const [aiSemester, setAiSemester] = useState(semesters[0] || "Spring");
   const [aiGenerating, setAiGenerating] = useState(false);
 
   const { toast } = useToast();
@@ -86,7 +87,7 @@ export default function InvoiceManagementPage() {
     if (filterType && filterType !== ALL_TYPES_FILTER_VALUE) {
       currentItems = currentItems.filter(inv => inv.type === filterType);
     }
-    setFilteredInvoices(currentItems.sort((a,b) => b.issueDate.getTime() - a.issueDate.getTime()));
+    setFilteredInvoices(currentItems.sort((a,b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime()));
   }, [invoices, searchTerm, filterStatus, filterType]);
 
 
@@ -103,7 +104,7 @@ export default function InvoiceManagementPage() {
        return;
     }
     
-    const totalAmount = currentInvoice.items.reduce((sum, item) => sum + (item.total || 0), 0);
+    const totalAmount = (currentInvoice.items || []).reduce((sum, item) => sum + (item.total || 0), 0);
 
     const invoiceData = {
       id: editingInvoiceId || `INV${Date.now()}`,
@@ -111,7 +112,7 @@ export default function InvoiceManagementPage() {
       studentName: student.name,
       issueDate: currentInvoice.issueDate,
       dueDate: currentInvoice.dueDate,
-      items: currentInvoice.items,
+      items: currentInvoice.items || [],
       totalAmount: totalAmount,
       status: currentInvoice.status,
       type: currentInvoice.type,
@@ -128,7 +129,7 @@ export default function InvoiceManagementPage() {
   };
 
   const handleEdit = (invoice) => {
-    setCurrentInvoice({ ...invoice, items: invoice.items.map(item => ({...item})) });
+    setCurrentInvoice({ ...invoice, items: (invoice.items || []).map(item => ({...item})) });
     setEditingInvoiceId(invoice.id);
     setIsFormOpen(true);
   };
@@ -153,19 +154,19 @@ export default function InvoiceManagementPage() {
 
   const handleItemChange = (index, field, value) => {
     setCurrentInvoice(prev => {
-      if (!prev || !prev.items) return prev;
+      if (!prev || !prev.items) return prev; // Defensive check
       const newItems = [...prev.items];
+      if(!newItems[index]) newItems[index] = { id: `item${Date.now()}`, description: '', quantity: 1, unitPrice: 0, total: 0 }; //Ensure item exists
+      
       const item = { ...newItems[index] };
       
       if (field === 'quantity' || field === 'unitPrice') {
-        item[field] = parseFloat(value) || 0; // Ensure numeric for calculation
+        item[field] = parseFloat(value) || 0;
       } else {
         item[field] = value;
       }
 
-      if (field === 'quantity' || field === 'unitPrice') {
-        item.total = (item.quantity || 0) * (item.unitPrice || 0);
-      }
+      item.total = (item.quantity || 0) * (item.unitPrice || 0);
       newItems[index] = item;
       return { ...prev, items: newItems };
     });
@@ -174,7 +175,7 @@ export default function InvoiceManagementPage() {
   const handleRemoveItem = (index) => {
     setCurrentInvoice(prev => ({
       ...prev,
-      items: prev?.items?.filter((_, i) => i !== index) || []
+      items: (prev?.items || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -199,7 +200,8 @@ export default function InvoiceManagementPage() {
 
     try {
       const result = await generateInvoiceDescriptions(input);
-      const description = result.description;
+      // Ensure result and result.description exist
+      const description = result?.description || `Generated ${aiInvoiceType} for ${month ? month + ', ' : ''}${semesterInput ? semesterInput + ', ' : ''}${year}`;
       
       const newAiInvoices = students.map(student => ({
         id: `AI_INV${Date.now()}_${student.id}`,
@@ -220,12 +222,12 @@ export default function InvoiceManagementPage() {
       }));
 
       setInvoices(prev => [...prev, ...newAiInvoices]);
-      toast({ title: "AI Invoices Generated", description: `${newAiInvoices.length} ${aiInvoiceType === 'semesterFees' ? 'semester fee' : 'hostel due'} invoices generated for ${month ? month + ', ' : ''}${semesterInput ? semesterInput + ', ' : ''}${year}.` });
+      toast({ title: "AI Invoices Generated", description: `${newAiInvoices.length} ${aiInvoiceType === 'semesterFees' ? 'semester fee' : 'hostel due'} invoices generated.` });
       setIsAIGenerationOpen(false);
 
     } catch (error) {
       console.error("AI Generation Error:", error);
-      toast({ title: "AI Generation Failed", description: "Could not generate invoices.", variant: "destructive" });
+      toast({ title: "AI Generation Failed", description: error.message || "Could not generate invoices.", variant: "destructive" });
     } finally {
       setAiGenerating(false);
     }
@@ -254,7 +256,7 @@ export default function InvoiceManagementPage() {
         {aiInvoiceType === 'semesterFees' && (
           <div>
             <Label htmlFor="ai-semester">Semester</Label>
-            <Select value={aiSemester} onValueChange={(v) => setAiSemester(v || semesters[0])}>
+            <Select value={aiSemester} onValueChange={(v) => setAiSemester(v || (semesters.length > 0 ? semesters[0] : ''))}>
               <SelectTrigger id="ai-semester"><SelectValue placeholder="Select Semester" /></SelectTrigger>
               <SelectContent>{semesters.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
             </Select>
@@ -273,7 +275,7 @@ export default function InvoiceManagementPage() {
                     !aiTargetDate && "text-muted-foreground"
                     )}
                 >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIconLucide className="mr-2 h-4 w-4" />
                     {aiTargetDate ? (aiInvoiceType === 'hostelDues' ? format(aiTargetDate, "MMMM yyyy") : format(aiTargetDate, "yyyy")) : <span>Pick a date</span>}
                 </Button>
                 </PopoverTrigger>
@@ -330,11 +332,11 @@ export default function InvoiceManagementPage() {
                 <Popover>
                     <PopoverTrigger asChild>
                     <Button id="issue-date" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !currentInvoice?.issueDate && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {currentInvoice?.issueDate ? format(currentInvoice.issueDate, "PPP") : <span>Pick issue date</span>}
+                        <CalendarIconLucide className="mr-2 h-4 w-4" />
+                        {currentInvoice?.issueDate ? format(new Date(currentInvoice.issueDate), "PPP") : <span>Pick issue date</span>}
                     </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.issueDate} onSelect={(d) => setCurrentInvoice({...currentInvoice, issueDate: d || undefined})} initialFocus /></PopoverContent>
+                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.issueDate ? new Date(currentInvoice.issueDate) : undefined} onSelect={(d) => setCurrentInvoice({...currentInvoice, issueDate: d || undefined})} initialFocus /></PopoverContent>
                 </Popover>
             </div>
             <div>
@@ -342,24 +344,24 @@ export default function InvoiceManagementPage() {
                  <Popover>
                     <PopoverTrigger asChild>
                     <Button id="due-date" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !currentInvoice?.dueDate && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {currentInvoice?.dueDate ? format(currentInvoice.dueDate, "PPP") : <span>Pick due date</span>}
+                        <CalendarIconLucide className="mr-2 h-4 w-4" />
+                        {currentInvoice?.dueDate ? format(new Date(currentInvoice.dueDate), "PPP") : <span>Pick due date</span>}
                     </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.dueDate} onSelect={(d) => setCurrentInvoice({...currentInvoice, dueDate: d || undefined})} initialFocus /></PopoverContent>
+                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={currentInvoice?.dueDate ? new Date(currentInvoice.dueDate) : undefined} onSelect={(d) => setCurrentInvoice({...currentInvoice, dueDate: d || undefined})} initialFocus /></PopoverContent>
                 </Popover>
             </div>
         </div>
         
         <div className="space-y-2">
           <Label>Invoice Items</Label>
-          {currentInvoice?.items?.map((item, index) => (
-            <Card key={item.id} className="p-3">
+          {(currentInvoice?.items || []).map((item, index) => (
+            <Card key={item.id || `item-${index}`} className="p-3"> {/* Added fallback key */}
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_100px_auto] gap-2 items-end">
                 <Input placeholder="Description" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} required className="sm:col-span-1"/>
                 <Input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} className="w-full sm:w-20" min="1" required />
                 <Input type="number" placeholder="Unit Price" value={item.unitPrice} onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)} className="w-full sm:w-28" step="0.01" min="0" required />
-                <Input type="number" placeholder="Total" value={item.total.toFixed(2)} readOnly className="w-full sm:w-28 bg-muted/50" />
+                <Input type="number" placeholder="Total" value={item.total !== undefined ? item.total.toFixed(2) : '0.00'} readOnly className="w-full sm:w-28 bg-muted/50" />
                 <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(index)} className="text-destructive place-self-end sm:place-self-center"><Trash2 className="h-4 w-4" /></Button>
               </div>
             </Card>
@@ -367,7 +369,7 @@ export default function InvoiceManagementPage() {
           <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="w-full sm:w-auto"><PlusCircle className="mr-2 h-4 w-4" />Add Item</Button>
         </div>
 
-        <div>Total Amount: <span className="font-semibold">${currentInvoice?.items?.reduce((sum, item) => sum + (item.total || 0), 0).toFixed(2)}</span></div>
+        <div>Total Amount: <span className="font-semibold">${(currentInvoice?.items || []).reduce((sum, item) => sum + (item.total || 0), 0).toFixed(2)}</span></div>
 
         <div>
             <Label htmlFor="invoice-status">Status</Label>
@@ -399,15 +401,15 @@ export default function InvoiceManagementPage() {
         </div>
       </div>
 
-      {renderAIGenerationForm()}
+      {isAIGenerationOpen && renderAIGenerationForm()}
       {isFormOpen && renderInvoiceForm()}
 
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Existing Invoices</CardTitle>
-          <CardDescription>View, edit, or delete university invoices.</CardDescription>
-          <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center">
-            <div className="relative flex-grow w-full sm:w-auto">
+          <CardDescription>View, edit, or delete university invoices. Overdue invoices are highlighted.</CardDescription>
+          <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center flex-wrap">
+            <div className="relative flex-grow w-full sm:w-auto min-w-[150px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
@@ -450,12 +452,12 @@ export default function InvoiceManagementPage() {
             </TableHeader>
             <TableBody>
               {filteredInvoices.length > 0 ? filteredInvoices.map(invoice => (
-                <TableRow key={invoice.id} className={invoice.status === 'Overdue' ? 'bg-destructive/10 hover:bg-destructive/20' : ''}>
+                <TableRow key={invoice.id} className={cn(invoice.status === 'Overdue' ? 'bg-red-500/10 dark:bg-red-900/30 hover:bg-red-500/20 dark:hover:bg-red-900/50' : '')}>
                   <TableCell className="font-medium">{invoice.id}</TableCell>
                   <TableCell>{invoice.studentName} <span className="text-xs text-muted-foreground hidden sm:inline">({invoice.studentId})</span></TableCell>
                   <TableCell className="hidden md:table-cell">{invoice.type}</TableCell>
-                  <TableCell className="hidden lg:table-cell">{format(invoice.issueDate, "PP")}</TableCell>
-                  <TableCell>{format(invoice.dueDate, "PP")}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{format(new Date(invoice.issueDate), "PP")}</TableCell>
+                  <TableCell>{format(new Date(invoice.dueDate), "PP")}</TableCell>
                   <TableCell className="text-right">${invoice.totalAmount.toFixed(2)}</TableCell>
                   <TableCell>
                     <span className={cn(

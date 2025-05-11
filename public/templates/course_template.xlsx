@@ -1,0 +1,5 @@
+This is a placeholder for the course_template.xlsx file.
+Please create an Excel file with the following columns:
+id (optional), code (required), title (required), description (optional), credits (required), department (required)
+Save it as course_template.xlsx in the public/templates directory.
+Ensure the first row contains these headers.
