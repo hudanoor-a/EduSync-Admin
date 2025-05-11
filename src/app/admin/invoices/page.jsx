@@ -408,7 +408,7 @@ export default function InvoiceManagementPage() {
         <CardHeader>
           <CardTitle>Existing Invoices</CardTitle>
           <CardDescription>View, edit, or delete university invoices. Overdue invoices are highlighted.</CardDescription>
-          <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center flex-wrap">
+          <div className="pt-4 flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
             <div className="relative flex-grow w-full sm:w-auto min-w-[150px] sm:min-w-[200px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -505,7 +505,7 @@ function DialogModal({ isOpen, onClose, title, description, children }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4 backdrop-blur-sm">
-            <Card className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl shadow-2xl max-h-[90vh] flex flex-col">
+            <Card className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl shadow-2xl max-h-[95vh] flex flex-col">
                 <CardHeader>
                     <CardTitle>{title}</CardTitle>
                     {description && <CardDescription>{description}</CardDescription>}
@@ -519,7 +519,7 @@ function DialogModal({ isOpen, onClose, title, description, children }) {
 }
 
 function DialogModalFooter({children}) {
-    return <CardFooter className="border-t pt-4 flex flex-col sm:flex-row justify-end gap-2">{children}</CardFooter>
+    return <CardFooter className="border-t pt-4 flex flex-col sm:flex-row justify-end gap-2 items-center">{children}</CardFooter>
 }
 
     

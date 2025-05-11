@@ -140,7 +140,7 @@ export default function LeaveRequestsPage() {
                 <p className="text-xs text-muted-foreground">Requested on: {format(request.requestedAt, "PPp")}</p>
               </CardContent>
               {request.status === 'Pending' && (
-                <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-auto">
+                <CardFooter className=\"flex flex-col sm:flex-row sm:flex-wrap justify-end gap-2 border-t pt-4 mt-auto\">\
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/50 dark:hover:text-red-300 w-full sm:w-auto">

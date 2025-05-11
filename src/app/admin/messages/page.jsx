@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast.js';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge'; 
 import { format } from 'date-fns'; 
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 
 const mockStudents = [
@@ -89,6 +90,7 @@ export default function MessagesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><MessageSquare className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Send Messages</h1>
+        
       </div>
 
        {/* Sent Messages Log - Moved to top */}
@@ -123,23 +125,24 @@ export default function MessagesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 shadow-lg"> {/* Compose Section */}
           <CardHeader>
-            <CardTitle>Compose New Message</CardTitle>
+ <CardTitle>Compose New Message</CardTitle>
             <CardDescription>Send a message to students, faculty, or groups.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-                <Label htmlFor="recipients">Recipients (Selected)</Label>
-                <div className="p-2 border rounded-md min-h-[40px] flex flex-wrap gap-1 bg-muted/30 dark:bg-muted/10">
-                    {selectedRecipients.length > 0 ? selectedRecipients.map(r => (
-                        <Badge key={r.id} variant="secondary" className="flex items-center gap-1">
-                            {r.name}
-                            <button type="button" onClick={() => handleRecipientSelect(r)} className="ml-1 text-muted-foreground hover:text-foreground">
-                                <XCircle className="h-3 w-3"/>
-                            </button>
-                        </Badge>
-                    )) : <span className="text-sm text-muted-foreground px-1">Select recipients from the list -&gt;</span>}
-                </div>
+ <Label htmlFor="recipients">Recipients (Selected)</Label>
+ <div className="p-2 border rounded-md min-h-[40px] flex flex-wrap gap-1 bg-muted/30 dark:bg-muted/10">
+ {selectedRecipients.length > 0 ? selectedRecipients.map(r => (
+ <Badge key={r.id} variant="secondary" className="flex items-center gap-1">
+ {r.name}
+ <button type="button" onClick={() => handleRecipientSelect(r)} className="ml-1 text-muted-foreground hover:text-foreground">
+ <XCircle className="h-3 w-3"/>
+ </button>
+ </Badge>
+ )) : <span className="text-sm text-muted-foreground px-1">Select recipients from the list -&gt;</span>}
+ </div>
             </div>
+
             <div>
               <Label htmlFor="subject">Subject</Label>
               <Input id="subject" placeholder="e.g., Important Announcement" value={subject} onChange={(e) => setSubject(e.target.value)} />

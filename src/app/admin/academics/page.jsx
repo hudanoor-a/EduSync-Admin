@@ -165,7 +165,7 @@ export default function AcademicsPage() {
     }
     
     return (
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2"> {/* Added max-h and overflow-y-auto */}
             {dayEntries.map(entry => (
                 <Card key={entry.id} className="p-3 bg-primary/5 dark:bg-primary/10">
                     <p className="font-semibold text-sm">{entry.courseName} <span className="text-xs text-muted-foreground">({entry.courseCode})</span></p>
@@ -195,7 +195,7 @@ export default function AcademicsPage() {
     }
 
     return (
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-w-full">
         <table className="min-w-full border-collapse border border-border text-xs sm:text-sm">
           <thead>
             <tr className="bg-muted dark:bg-muted/20">
@@ -212,7 +212,7 @@ export default function AcademicsPage() {
                 {daysOfWeek.map(day => {
                   const entry = timetableData.find(e => e.day === day && e.time.startsWith(slot.split('-')[0].trim()));
                   return (
-                    <td key={`${day}-${slot}`} className="border border-border p-1 h-16 sm:h-20 align-top min-w-[80px] sm:min-w-[100px]">
+                    <td key={`${day}-${slot}`} className="border border-border p-1 h-16 sm:h-20 align-top min-w-[90px] sm:min-w-[120px] overflow-hidden">
                       {entry ? (
                         <div className="text-[10px] sm:text-xs bg-primary/10 dark:bg-primary/20 p-1 rounded h-full flex flex-col justify-center">
                           <p className="font-semibold leading-tight">{entry.courseName} ({entry.courseCode})</p>
@@ -281,8 +281,8 @@ export default function AcademicsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsBarChart data={attendanceData} layout="vertical" margin={{ top: 5, right: 10, left: isMobileView ? -10 : 5, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tick={{fontSize: 10}}/>
-                    <YAxis dataKey="course" type="category" width={isMobileView ? 50 : 70} tick={{fontSize: isMobileView ? 8 : 10}} interval={0}/>
+                    <XAxis type="number" tick={{fontSize: isMobileView ? 8 : 10}}/>
+                    <YAxis dataKey="course" type="category" width={isMobileView ? 80 : 100} tick={{fontSize: isMobileView ? 8 : 10}} interval={0} style={{fontSize: isMobileView ? '8px' : '10px'}}/>
                     <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
                     <Legend wrapperStyle={{fontSize: '10px'}}/>
                     <Bar dataKey="present" stackId="a" fill="hsl(var(--chart-1))" name="Present" barSize={isMobileView ? 10 : 15} />
