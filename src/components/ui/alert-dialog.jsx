@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/button.jsx" // Added import
 
 const AlertDialog = AlertDialogPrimitive.Root
 
@@ -103,7 +104,8 @@ const AlertDialogCancel = React.forwardRef(
   <AlertDialogPrimitive.Cancel
     ref={ref}
     className={cn(
-      "mt-2 inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ring-offset-background sm:mt-0",
+      buttonVariants({ variant: "outline" }), // Added variant outline for cancel button
+      "mt-2 sm:mt-0", // Adjusted margin for mobile and ensured consistent styling
       className
     )}
     {...props}
