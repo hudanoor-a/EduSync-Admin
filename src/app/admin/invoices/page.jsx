@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, getYear, getMonth } from 'date-fns';
-import { FileText, Edit3, Trash2, Search, Filter, PlusCircle, Bot, CalendarIcon as CalendarIconLucide, Eye } from 'lucide-react'; // Renamed CalendarIcon
+import { FileText, Edit3, Trash2, Search, Filter, PlusCircle, Bot, CalendarIcon as CalendarIconLucide, Eye } from 'lucide-react'; 
 import { cn } from '@/lib/utils.js';
 import { useToast } from '@/hooks/use-toast.js';
 
@@ -45,10 +46,10 @@ const students = [
   { id: 'S003', name: 'Charlie Brown' },
 ];
 
-const invoiceTypes = ['Semester Fees', 'Hostel Dues', 'Exam Fees', 'Other'].filter(type => type !== ""); // Ensure no empty strings
-const invoiceStatuses = ['Pending', 'Paid', 'Overdue'].filter(status => status !== ""); // Ensure no empty strings
-const semesters = ["Spring", "Summer", "Fall", "Winter"].filter(s => s !== "");
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].filter(m => m !== "");
+const invoiceTypes = ['Semester Fees', 'Hostel Dues', 'Exam Fees', 'Other'].filter(type => type !== "").map(t => t || "Unnamed Type");
+const invoiceStatuses = ['Pending', 'Paid', 'Overdue'].filter(status => status !== "").map(s => s || "Unnamed Status");
+const semesters = ["Spring", "Summer", "Fall", "Winter"].filter(s => s !== "").map(s => s || "Unnamed Semester");
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].filter(m => m !== "").map(m => m || "Unnamed Month");
 
 const ALL_STATUSES_FILTER_VALUE = "_ALL_STATUSES_";
 const ALL_TYPES_FILTER_VALUE = "_ALL_TYPES_";
@@ -129,7 +130,7 @@ export default function InvoiceManagementPage() {
   };
 
   const handleEdit = (invoice) => {
-    setCurrentInvoice({ ...invoice, items: (invoice.items || []).map(item => ({...item})) });
+    setCurrentInvoice({ ...invoice, items: (invoice.items || []).map(item => ({...item, id: item.id || `item-${Date.now()}`})) });
     setEditingInvoiceId(invoice.id);
     setIsFormOpen(true);
   };
@@ -154,9 +155,9 @@ export default function InvoiceManagementPage() {
 
   const handleItemChange = (index, field, value) => {
     setCurrentInvoice(prev => {
-      if (!prev || !prev.items) return prev; // Defensive check
+      if (!prev || !prev.items) return prev; 
       const newItems = [...prev.items];
-      if(!newItems[index]) newItems[index] = { id: `item${Date.now()}`, description: '', quantity: 1, unitPrice: 0, total: 0 }; //Ensure item exists
+      if(!newItems[index]) newItems[index] = { id: `item${Date.now()}`, description: '', quantity: 1, unitPrice: 0, total: 0 }; 
       
       const item = { ...newItems[index] };
       
@@ -182,26 +183,25 @@ export default function InvoiceManagementPage() {
   const handleAIGenerateInvoices = async () => {
     setAiGenerating(true);
     const year = getYear(aiTargetDate).toString();
-    let month = undefined;
-    let semesterInput = undefined;
+    let monthValue = undefined;
+    let semesterInputValue = undefined;
 
     if (aiInvoiceType === 'hostelDues') {
-      month = months[getMonth(aiTargetDate)];
+      monthValue = months[getMonth(aiTargetDate)];
     } else {
-      semesterInput = aiSemester;
+      semesterInputValue = aiSemester;
     }
 
     const input = {
       invoiceType: aiInvoiceType,
-      semester: semesterInput,
-      month: month,
+      semester: semesterInputValue,
+      month: monthValue,
       year: year,
     };
 
     try {
       const result = await generateInvoiceDescriptions(input);
-      // Ensure result and result.description exist
-      const description = result?.description || `Generated ${aiInvoiceType} for ${month ? month + ', ' : ''}${semesterInput ? semesterInput + ', ' : ''}${year}`;
+      const description = result?.description || `Generated ${aiInvoiceType} for ${monthValue ? monthValue + ', ' : ''}${semesterInputValue ? semesterInputValue + ', ' : ''}${year}`;
       
       const newAiInvoices = students.map(student => ({
         id: `AI_INV${Date.now()}_${student.id}`,
@@ -210,7 +210,7 @@ export default function InvoiceManagementPage() {
         issueDate: aiTargetDate,
         dueDate: new Date(new Date(aiTargetDate).setDate(aiTargetDate.getDate() + 15)), 
         items: [{
-          id: 'ai_item1',
+          id: `ai_item_${Date.now()}`,
           description: description,
           quantity: 1,
           unitPrice: aiInvoiceType === 'semesterFees' ? 1500 : 350, 
@@ -356,8 +356,8 @@ export default function InvoiceManagementPage() {
         <div className="space-y-2">
           <Label>Invoice Items</Label>
           {(currentInvoice?.items || []).map((item, index) => (
-            <Card key={item.id || `item-${index}`} className="p-3"> {/* Added fallback key */}
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_100px_auto] gap-2 items-end">
+            <Card key={item.id || `item-${index}`} className="p-3"> 
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-end">
                 <Input placeholder="Description" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} required className="sm:col-span-1"/>
                 <Input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} className="w-full sm:w-20" min="1" required />
                 <Input type="number" placeholder="Unit Price" value={item.unitPrice} onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)} className="w-full sm:w-28" step="0.01" min="0" required />
@@ -409,7 +409,7 @@ export default function InvoiceManagementPage() {
           <CardTitle>Existing Invoices</CardTitle>
           <CardDescription>View, edit, or delete university invoices. Overdue invoices are highlighted.</CardDescription>
           <div className="pt-4 flex flex-col sm:flex-row gap-2 items-center flex-wrap">
-            <div className="relative flex-grow w-full sm:w-auto min-w-[150px]">
+            <div className="relative flex-grow w-full sm:w-auto min-w-[150px] sm:min-w-[200px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
@@ -505,7 +505,7 @@ function DialogModal({ isOpen, onClose, title, description, children }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4 backdrop-blur-sm">
-            <Card className="w-full max-w-xs sm:max-w-md md:max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
+            <Card className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl shadow-2xl max-h-[90vh] flex flex-col">
                 <CardHeader>
                     <CardTitle>{title}</CardTitle>
                     {description && <CardDescription>{description}</CardDescription>}
@@ -513,7 +513,6 @@ function DialogModal({ isOpen, onClose, title, description, children }) {
                 <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6 pt-0">
                     {children}
                 </CardContent>
-                {/* Footer is now part of renderInvoiceForm/renderAIGenerationForm for specific button layouts */}
             </Card>
         </div>
     );
@@ -522,3 +521,5 @@ function DialogModal({ isOpen, onClose, title, description, children }) {
 function DialogModalFooter({children}) {
     return <CardFooter className="border-t pt-4 flex flex-col sm:flex-row justify-end gap-2">{children}</CardFooter>
 }
+
+    

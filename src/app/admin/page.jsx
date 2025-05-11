@@ -3,9 +3,9 @@
 import { StatCard } from '@/components/admin/StatCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, BookOpen, CalendarCheck2, FileText, AlertTriangle, Building } from 'lucide-react'; // Added Building icon
+import { Users, BookOpen, CalendarCheck2, FileText, AlertTriangle, Building, Activity } from 'lucide-react'; 
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
-import { Button, buttonVariants } from '@/components/ui/button'; // Import buttonVariants
+import { Button, buttonVariants } from '@/components/ui/button'; 
 import Link from 'next/link';
 import { cn } from '@/lib/utils.js';
 
@@ -16,7 +16,6 @@ const recentActivity = [
   { id: 4, activity: 'Dr. Smith updated course "Advanced AI".', timestamp: '2 days ago', category: 'Courses' },
 ];
 
-// Sample data for students per department
 const studentsPerDepartmentData = [
   { name: 'Comp Sci', students: 350 },
   { name: 'Mech Eng', students: 220 },
@@ -36,13 +35,13 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><Activity className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" />Admin Dashboard</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Link 
             href="/admin/users" 
             className={cn(buttonVariants({ variant: 'outline' }), "w-full sm:w-auto")}
           >
-            Add Student
+            Add User
           </Link>
           <Link 
             href="/admin/events"
@@ -55,16 +54,16 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Link href="/admin/users" className="block">
-          <StatCard title="Total Students" value="1,250" icon={Users} description="+20 this month" iconClassName="text-blue-500" />
+          <StatCard title="Total Students" value="1,250" icon={Users} description="+20 this month" iconClassName="text-primary" />
         </Link>
-        <Link href="/admin/users" className="block"> {/* Assuming faculty are also managed under /admin/users */}
-          <StatCard title="Total Faculty" value="150" icon={Users} description="+5 this month" iconClassName="text-green-500" />
+        <Link href="/admin/users" className="block"> 
+          <StatCard title="Total Faculty" value="150" icon={Users} description="+5 this month" iconClassName="text-green-500 dark:text-green-400" />
         </Link>
         <Link href="/admin/events" className="block">
-          <StatCard title="Upcoming Events" value="5" icon={CalendarCheck2} description="2 within next week" iconClassName="text-purple-500" />
+          <StatCard title="Upcoming Events" value="5" icon={CalendarCheck2} description="2 within next week" iconClassName="text-purple-500 dark:text-purple-400" />
         </Link>
         <Link href="/admin/invoices" className="block">
-          <StatCard title="Pending Invoices" value="25" icon={FileText} description="$12,500 due" iconClassName="text-orange-500" />
+          <StatCard title="Pending Invoices" value="25" icon={FileText} description="$12,500 due" iconClassName="text-orange-500 dark:text-orange-400" />
         </Link>
       </div>
 
@@ -73,7 +72,7 @@ export default function AdminDashboardPage() {
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
               <CardTitle className="flex items-center"><Building className="mr-2 h-5 w-5 text-primary" /> Students per Department</CardTitle>
-              <CardDescription>Distribution of students across major departments.</CardDescription>
+              <CardDescription>Distribution of students across major departments. Click to see more analytics.</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -153,7 +152,7 @@ export default function AdminDashboardPage() {
             <CardDescription>Important system notifications or pending tasks.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-yellow-500/50 bg-yellow-500/10 rounded-md gap-2 sm:gap-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-yellow-500/50 bg-yellow-500/10 dark:bg-yellow-700/20 rounded-md gap-2 sm:gap-0">
               <p className="text-sm text-yellow-700 dark:text-yellow-300 flex-1">5 Faculty leave requests pending approval.</p>
               <Link 
                 href="/admin/leaves" 
@@ -162,11 +161,11 @@ export default function AdminDashboardPage() {
                 View
               </Link>
             </div>
-             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-red-500/50 bg-red-500/10 rounded-md gap-2 sm:gap-0">
+             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-red-500/50 bg-red-500/10 dark:bg-red-700/20 rounded-md gap-2 sm:gap-0">
               <p className="text-sm text-red-700 dark:text-red-300 flex-1">System backup failed last night.</p>
               <Button variant="destructive" size="sm" className="w-full sm:w-auto">Details</Button>
             </div>
-             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-blue-500/50 bg-blue-500/10 rounded-md gap-2 sm:gap-0">
+             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-blue-500/50 bg-blue-500/10 dark:bg-blue-700/20 rounded-md gap-2 sm:gap-0">
               <p className="text-sm text-blue-700 dark:text-blue-300 flex-1">New software update available for Student Portal.</p>
               <Button variant="outline" size="sm" className="w-full sm:w-auto">Learn More</Button>
             </div>
@@ -176,3 +175,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    

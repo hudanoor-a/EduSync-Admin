@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -42,9 +43,9 @@ export default function EventManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState(ALL_CATEGORIES_FILTER_VALUE);
   
-  const [isFormOpen, setIsFormOpen] = useState(false); // For manual add/edit form
   const [currentEvent, setCurrentEvent] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
+  const [activeTab, setActiveTab] = useState("view");
 
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -77,7 +78,7 @@ export default function EventManagementPage() {
       id: editingEventId || `EVT${Date.now()}`,
       title: currentEvent.title,
       description: currentEvent.description || '',
-      date: currentEvent.date, // Ensure this is a Date object
+      date: currentEvent.date, 
       location: currentEvent.location,
       category: currentEvent.category,
     };
@@ -90,12 +91,13 @@ export default function EventManagementPage() {
       toast({ title: "Event Created", description: `"${eventData.title}" has been added.` });
     }
     resetForm();
+    setActiveTab("view");
   };
 
   const handleEdit = (event) => {
-    setCurrentEvent({ ...event, date: new Date(event.date) }); // Ensure date is a Date object
+    setCurrentEvent({ ...event, date: new Date(event.date) }); 
     setEditingEventId(event.id);
-    setIsFormOpen(true);
+    setActiveTab("add"); 
   };
 
   const handleDelete = async (eventId) => {
@@ -107,7 +109,6 @@ export default function EventManagementPage() {
   const resetForm = () => {
     setCurrentEvent(null);
     setEditingEventId(null);
-    setIsFormOpen(false);
   };
 
   const handleFileUpload = async () => {
@@ -122,16 +123,17 @@ export default function EventManagementPage() {
         id: row.id?.toString() || `EVT_F${Date.now() + index}`,
         title: row.title?.toString() || 'Untitled Event',
         description: row.description?.toString() || '',
-        date: row.date ? new Date(row.date.toString()) : new Date(), // Ensure valid date
+        date: row.date ? new Date(row.date.toString()) : new Date(), 
         location: row.location?.toString() || 'N/A',
         category: row.category?.toString() || (eventCategories.length > 0 ? eventCategories[0] : 'Other'),
-      })).filter(ne => !events.some(ee => ee.id === ne.id)); // Avoid duplicate IDs
+      })).filter(ne => !events.some(ee => ee.id === ne.id)); 
 
       const skippedCount = parsedData.length - newEvents.length;
 
       setEvents(prev => [...prev, ...newEvents]);
       toast({ title: "Upload Successful", description: `${newEvents.length} events added. ${skippedCount > 0 ? `${skippedCount} events skipped due to duplicate ID.` : ''}` });
       setFile(null);
+      setActiveTab("view");
     } catch (error) {
       console.error("Upload error:", error);
       toast({ title: "Upload Failed", description: "Could not process the file. Check format.", variant: "destructive" });
@@ -175,7 +177,7 @@ export default function EventManagementPage() {
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={currentEvent?.date ? new Date(currentEvent.date) : undefined} // Ensure date is Date object
+                    selected={currentEvent?.date ? new Date(currentEvent.date) : undefined} 
                     onSelect={(date) => setCurrentEvent({...currentEvent, date: date || undefined })}
                     initialFocus
                   />
@@ -189,7 +191,7 @@ export default function EventManagementPage() {
           </div>
           <div>
             <Label htmlFor="event-category">Category</Label>
-             <Select value={currentEvent?.category || ''} onValueChange={(value) => setCurrentEvent({...currentEvent, category: value})} required>
+             <Select value={currentEvent?.category || ''} onValueChange={(value) => setCurrentEvent({...currentEvent, category: value})} >
                 <SelectTrigger id="event-category"><SelectValue placeholder="Select Category" /></SelectTrigger>
                 <SelectContent>
                     {eventCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
@@ -198,7 +200,7 @@ export default function EventManagementPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
-          <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">Cancel</Button>
+          <Button type="button" variant="outline" onClick={() => { resetForm(); setActiveTab("view");}} className="w-full sm:w-auto">Cancel</Button>
           <Button type="submit" className="w-full sm:w-auto">{editingEventId ? 'Update Event' : 'Create Event'}</Button>
         </CardFooter>
       </form>
@@ -229,7 +231,7 @@ export default function EventManagementPage() {
             {file && <p className="text-sm text-muted-foreground mt-1">Selected: {file.name}</p>}
         </div>
       </CardContent>
-      <CardFooter className="mt-2"> {/* Added margin-top for spacing */}
+      <CardFooter className="mt-2"> 
         <Button onClick={handleFileUpload} disabled={uploading || !file} className="w-full md:w-auto">
           <UploadCloud className="mr-2 h-4 w-4" />
           {uploading ? 'Uploading...' : 'Upload Events'}
@@ -244,21 +246,26 @@ export default function EventManagementPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><CalendarDays className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Event Management</h1>
       </div>
 
-      <Tabs defaultValue="view" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4"> {/* Changed to 3 cols for better balance */}
-            <TabsTrigger value="view" onClick={() => setIsFormOpen(false)}>View Events</TabsTrigger>
-            <TabsTrigger value="add" onClick={() => { setCurrentEvent({date: new Date()}); setEditingEventId(null); setIsFormOpen(true);}}>Add/Edit Manually</TabsTrigger>
-            <TabsTrigger value="upload" onClick={() => setIsFormOpen(false)}>Upload Excel</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={(value) => {
+        setActiveTab(value);
+        if (value !== "add") {
+            resetForm();
+        } else if (!editingEventId && value === "add") {
+            setCurrentEvent({date: new Date()});
+        }
+      }} className="w-full">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4"> 
+            <TabsTrigger value="view">View Events</TabsTrigger>
+            <TabsTrigger value="add">Add/Edit Manually</TabsTrigger>
+            <TabsTrigger value="upload">Upload Excel</TabsTrigger>
         </TabsList>
         
         <TabsContent value="view">
-             {!isFormOpen && ( // Moved Add New Event button here for View tab context
-                <div className="flex justify-end mb-4">
-                    <Button onClick={() => { setCurrentEvent({date: new Date()}); setEditingEventId(null); setIsFormOpen(true); document.querySelector('[data-radix-collection-item][value="add"]')?.click();}} className="w-full sm:w-auto">
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add New Event
-                    </Button>
-                </div>
-            )}
+            <div className="flex justify-end mb-4">
+                <Button onClick={() => { setCurrentEvent({date: new Date()}); setEditingEventId(null); setActiveTab("add");}} className="w-full sm:w-auto">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Event
+                </Button>
+            </div>
             <Card className="shadow-lg">
                 <CardHeader>
                 <CardTitle>Existing Events</CardTitle>
@@ -298,7 +305,7 @@ export default function EventManagementPage() {
                                     <p className="text-sm text-muted-foreground">{format(new Date(event.date), "PPP")} - {event.location}</p>
                                 </div>
                                 <div className="flex gap-2 self-start sm:self-center mt-2 sm:mt-0">
-                                    <Button variant="outline" size="icon" onClick={() => { handleEdit(event);  document.querySelector('[data-radix-collection-item][value="add"]')?.click(); }}><Edit3 className="h-4 w-4" /></Button>
+                                    <Button variant="outline" size="icon" onClick={() => handleEdit(event)}><Edit3 className="h-4 w-4" /></Button>
                                     <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
@@ -333,8 +340,12 @@ export default function EventManagementPage() {
             </Card>
         </TabsContent>
         <TabsContent value="add">
-            {isFormOpen && renderEventForm()}
-            {!isFormOpen && <p className="text-muted-foreground text-center py-4">Select "Add/Edit Manually" tab again or click an "Edit" button on an event to open the form.</p>}
+             { (currentEvent || editingEventId) ? renderEventForm() : <p className="text-muted-foreground text-center py-4">Select "Add/Edit Manually" tab and click "Add New Event" button or an "Edit" button on an event to open the form.</p>}
+             {activeTab === 'add' && !editingEventId && !currentEvent && (
+                 <div className="text-center mt-4">
+                    <Button onClick={() => setCurrentEvent({date: new Date()})} > <PlusCircle className="mr-2 h-4 w-4"/> Add New Event Manually</Button>
+                 </div>
+            )}
         </TabsContent>
         <TabsContent value="upload">
           {renderFileUpload()}
@@ -343,3 +354,5 @@ export default function EventManagementPage() {
     </div>
   );
 }
+
+    

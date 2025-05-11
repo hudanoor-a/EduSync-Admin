@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageSquare, Send, Search } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast.js'; // .js extension
+import { MessageSquare, Send, Search, Inbox } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast.js'; 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge'; 
 import { format } from 'date-fns'; 
@@ -27,7 +28,6 @@ const predefinedGroups = [
     { id: 'group_cs_2023', name: 'Computer Science - Batch 2023', type: 'group'},
 ];
 
-// Minimal XCircle icon 
 const XCircle = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <circle cx="12" cy="12" r="10"></circle>
@@ -41,9 +41,12 @@ export default function MessagesPage() {
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [sentMessages, setSentMessages] = useState([]);
+  const [sentMessages, setSentMessages] = useState([
+      { id: `MSG${Date.now()-10000}`, recipients: [{name: 'All Students', type: 'group'}], subject: "Reminder: Mid-term exams", body: "Dear Students,\n\nPlease be reminded that mid-term exams start next week. Check the portal for your schedule.\n\nBest regards,\nAdmin Office", sentAt: new Date(Date.now() - 86400000), sender: 'Admin' },
+      { id: `MSG${Date.now()-20000}`, recipients: [{name: 'Dr. Eleanor Vance', type: 'faculty'}], subject: "Faculty Meeting Update", body: "Dear Dr. Vance,\n\nThe faculty meeting scheduled for tomorrow has been postponed to next Friday at 2 PM.\n\nThanks,\nAdmin", sentAt: new Date(Date.now() - 3600000), sender: 'Admin' },
+  ]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [availableRecipients] = useState([...predefinedGroups, ...mockStudents, ...mockFaculty]); // Removed setAvailableRecipients as it wasn't used
+  const [availableRecipients] = useState([...predefinedGroups, ...mockStudents, ...mockFaculty]); 
   
   const { toast } = useToast();
 
@@ -86,18 +89,47 @@ export default function MessagesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><MessageSquare className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Send Messages</h1>
+      </div>
 
+       {/* Sent Messages Log - Moved to top */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center"><Inbox className="mr-2 h-5 w-5 text-primary"/>Sent Messages Log</CardTitle>
+          <CardDescription>History of messages sent by the admin.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {sentMessages.length > 0 ? (
+            <div className="space-y-4 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-2">
+              {sentMessages.map(msg => (
+                <details key={msg.id} className="border rounded-md p-3 hover:bg-muted/30 dark:hover:bg-muted/10">
+                  <summary className="cursor-pointer font-medium flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-4">
+                    <span className="flex-1">{msg.subject} - To: {msg.recipients.length} recipient(s)</span>
+                    <span className="text-xs text-muted-foreground self-start sm:self-center whitespace-nowrap">{format(msg.sentAt, "PPp")}</span>
+                  </summary>
+                  <div className="mt-2 pt-2 border-t">
+                    <p className="text-sm whitespace-pre-wrap">{msg.body}</p>
+                    <p className="text-xs text-muted-foreground mt-2">Recipients: {msg.recipients.map(r => r.name).join(', ')}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No messages sent yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Compose and Recipient Selection Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Compose Section */}
-        <Card className="lg:col-span-2 shadow-lg">
+        <Card className="lg:col-span-2 shadow-lg"> {/* Compose Section */}
           <CardHeader>
             <CardTitle>Compose New Message</CardTitle>
             <CardDescription>Send a message to students, faculty, or groups.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-                <Label htmlFor="recipients">Recipients</Label>
-                <div className="p-2 border rounded-md min-h-[40px] flex flex-wrap gap-1 bg-muted/30">
+                <Label htmlFor="recipients">Recipients (Selected)</Label>
+                <div className="p-2 border rounded-md min-h-[40px] flex flex-wrap gap-1 bg-muted/30 dark:bg-muted/10">
                     {selectedRecipients.length > 0 ? selectedRecipients.map(r => (
                         <Badge key={r.id} variant="secondary" className="flex items-center gap-1">
                             {r.name}
@@ -124,8 +156,7 @@ export default function MessagesPage() {
           </CardFooter>
         </Card>
 
-        {/* Recipient Selection Section */}
-        <Card className="shadow-lg">
+        <Card className="shadow-lg"> {/* Recipient Selection Section */}
             <CardHeader>
                 <CardTitle>Select Recipients</CardTitle>
                 <div className="relative mt-2">
@@ -139,13 +170,13 @@ export default function MessagesPage() {
                     />
                 </div>
             </CardHeader>
-            <CardContent className="max-h-[400px] overflow-y-auto space-y-2">
+            <CardContent className="max-h-[300px] sm:max-h-[400px] lg:max-h-[calc(theme(space.96)_-_theme(space.20))] overflow-y-auto space-y-2 pr-2"> {/* Adjusted height and padding for scrollbar */}
                 {filteredAvailableRecipients.length > 0 ? filteredAvailableRecipients.map(recipient => (
-                     <div key={recipient.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer" onClick={() => handleRecipientSelect(recipient)}>
+                     <div key={recipient.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 dark:hover:bg-muted/20 cursor-pointer" onClick={() => handleRecipientSelect(recipient)}>
                         <Checkbox 
                             id={`recipient-${recipient.id}`}
                             checked={selectedRecipients.some(r => r.id === recipient.id)}
-                            onCheckedChange={() => handleRecipientSelect(recipient)} // Allow clicking checkbox directly
+                            onCheckedChange={() => handleRecipientSelect(recipient)} 
                         />
                         <Label htmlFor={`recipient-${recipient.id}`} className="flex-grow cursor-pointer text-sm">
                             {recipient.name}
@@ -156,35 +187,8 @@ export default function MessagesPage() {
             </CardContent>
         </Card>
       </div>
-
-      {/* Sent Messages Log */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Sent Messages Log</CardTitle>
-          <CardDescription>History of messages sent by the admin.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sentMessages.length > 0 ? (
-            <div className="space-y-4 max-h-[500px] overflow-y-auto">
-              {sentMessages.map(msg => (
-                <details key={msg.id} className="border rounded-md p-3 hover:bg-muted/30">
-                  <summary className="cursor-pointer font-medium flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-4">
-                    <span className="flex-1">{msg.subject} - To: {msg.recipients.length} recipient(s)</span>
-                    <span className="text-xs text-muted-foreground self-start sm:self-center whitespace-nowrap">{format(msg.sentAt, "PPp")}</span>
-                  </summary>
-                  <div className="mt-2 pt-2 border-t">
-                    <p className="text-sm whitespace-pre-wrap">{msg.body}</p>
-                    <p className="text-xs text-muted-foreground mt-2">Recipients: {msg.recipients.map(r => r.name).join(', ')}</p>
-                  </div>
-                </details>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-muted-foreground py-8">No messages sent yet.</p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
     </div>
   );
 }
+
+    

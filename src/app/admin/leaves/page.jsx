@@ -1,10 +1,11 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Filter, Clock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast.js'; // .js extension
+import { useToast } from '@/hooks/use-toast.js'; 
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +29,7 @@ const initialLeaveRequests = [
   { id: 'LR004', facultyName: 'Dr. Eleanor Vance', facultyId: 'F001', department: 'Physics', startDate: new Date(2024, 9, 10), endDate: new Date(2024, 9, 12), reason: 'Family vacation', status: 'Rejected', requestedAt: new Date(2024, 7, 1, 16, 0) },
 ];
 
-const departments = ["Physics", "Mathematics", "Computer Science"];
+const departments = ["Physics", "Mathematics", "Computer Science"].map(d => d || "Unnamed Department");
 const ALL_DEPARTMENTS_FILTER_VALUE = "_ALL_DEPARTMENTS_";
 const ALL_STATUSES_FILTER_VALUE = "_ALL_STATUSES_";
 
@@ -69,7 +70,7 @@ export default function LeaveRequestsPage() {
     toast({
       title: `Leave Request ${newStatus}`,
       description: `Request ID ${requestId} has been ${newStatus.toLowerCase()}.`,
-      variant: newStatus === 'Approved' ? 'default' : 'destructive',
+      variant: newStatus === 'Approved' ? 'default' : (newStatus === 'Rejected' ? 'destructive' : 'default'),
     });
   };
 
@@ -83,7 +84,7 @@ export default function LeaveRequestsPage() {
           <CardDescription>Filter leave requests by status and department.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
+          <div className="flex-1 space-y-1">
             <Label htmlFor="status-filter">Status</Label>
             <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value || ALL_STATUSES_FILTER_VALUE)}>
               <SelectTrigger id="status-filter" className="w-full">
@@ -97,7 +98,7 @@ export default function LeaveRequestsPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 space-y-1">
             <Label htmlFor="department-filter">Department</Label>
             <Select value={filterDepartment} onValueChange={(value) => setFilterDepartment(value || ALL_DEPARTMENTS_FILTER_VALUE)}>
               <SelectTrigger id="department-filter" className="w-full">
@@ -139,10 +140,10 @@ export default function LeaveRequestsPage() {
                 <p className="text-xs text-muted-foreground">Requested on: {format(request.requestedAt, "PPp")}</p>
               </CardContent>
               {request.status === 'Pending' && (
-                <CardFooter className="flex justify-end gap-2 border-t pt-4 mt-auto">
+                <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-auto">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700">
+                      <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/50 dark:hover:text-red-300 w-full sm:w-auto">
                         <XCircle className="mr-2 h-4 w-4" /> Reject
                       </Button>
                     </AlertDialogTrigger>
@@ -166,7 +167,7 @@ export default function LeaveRequestsPage() {
                   </AlertDialog>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600 w-full sm:w-auto">
                         <CheckCircle2 className="mr-2 h-4 w-4" /> Approve
                       </Button>
                     </AlertDialogTrigger>
@@ -203,3 +204,5 @@ export default function LeaveRequestsPage() {
     </div>
   );
 }
+
+    

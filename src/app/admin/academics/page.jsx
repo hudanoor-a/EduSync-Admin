@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -5,18 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIconLucide, BarChart2, Filter, ChevronLeft, ChevronRight, Users, User } from 'lucide-react'; 
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart as RechartsBarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts'; // Aliased BarChart to RechartsBarChart
-import { format, addDays, subDays, isEqual, startOfDay } from 'date-fns';
+import { Calendar as CalendarIconLucide, BarChart2, Filter, ChevronLeft, ChevronRight, Users, User, BookCopy } from 'lucide-react'; 
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart as RechartsBarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { format, addDays, subDays, startOfDay } from 'date-fns'; // Removed isEqual as it's not used
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { cn } from '@/lib/utils.js';
 
-const studentFields = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Business Administration"];
-const studentBatches = ["2021", "2022", "2023", "2024"];
-const studentSections = ["A", "B", "C"];
+const studentFieldsData = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Business Administration"];
+const studentBatchesData = ["2021", "2022", "2023", "2024"];
+const studentSectionsData = ["A", "B", "C"];
 
-const facultyDepartments = ["Physics", "Mathematics", "Computer Science", "Engineering", "Business"];
 const mockFacultyList = [
   { id: 'F001', name: 'Dr. Smith', department: 'Computer Science' },
   { id: 'F002', name: 'Dr. Jones', department: 'Mechanical Engineering' },
@@ -30,6 +30,7 @@ const mockStudentTimetableData = [
   { id: 'tt5', day: 'Monday', time: '11:00 - 12:00', courseName: 'Intro to Prog Lab', courseCode: 'CS101L', facultyName: 'Dr. Smith', roomNo: 'L10', field: 'Computer Science', batch: '2023', section: 'A' },
   { id: 'tt3', day: 'Tuesday', time: '11:00 - 12:00', courseName: 'Circuit Theory', courseCode: 'EE305', facultyName: 'Dr. Brown', roomNo: 'R103', field: 'Electrical Engineering', batch: '2023', section: 'C' },
   { id: 'tt4', day: 'Wednesday', time: '14:00 - 15:00', courseName: 'Mgmt Principles', courseCode: 'BA101', facultyName: 'Prof. Green', roomNo: 'R104', field: 'Business Administration', batch: '2024', section: 'A' },
+  { id: 'tt6', day: 'Thursday', time: '09:00 - 10:00', courseName: 'Data Structures', courseCode: 'CS201', facultyName: 'Dr. Smith', roomNo: 'R201', field: 'Computer Science', batch: '2023', section: 'A' },
 ];
 
 const mockFacultyTimetableData = [
@@ -39,49 +40,48 @@ const mockFacultyTimetableData = [
  { id: 'ftt4', day: 'Wednesday', time: '10:00 - 11:00', courseName: 'Thermodynamics', courseCode: 'ME202', roomNo: 'R102', for: 'ME 2022 B', facultyId: 'F002'},
 ];
 
-
 const mockStudentAttendanceData = [
   { course: 'CS101', present: 45, absent: 5, total: 50, field: 'Computer Science', batch: '2023', section: 'A' },
   { course: 'ME202', present: 40, absent: 10, total: 50, field: 'Mechanical Engineering', batch: '2022', section: 'B' },
   { course: 'EE305', present: 35, absent: 15, total: 50, field: 'Electrical Engineering', batch: '2023', section: 'C' },
   { course: 'BA101', present: 48, absent: 2, total: 50, field: 'Business Administration', batch: '2024', section: 'A'},
+  { course: 'CS201', present: 42, absent: 8, total: 50, field: 'Computer Science', batch: '2023', section: 'A' },
 ];
 
-const mockFacultyAttendanceData = [ // Simplified for example
+const mockFacultyAttendanceData = [ 
     { facultyId: 'F001', month: '2024-07', present: 18, absent: 2, leave: 1 },
     { facultyId: 'F002', month: '2024-07', present: 20, absent: 1, leave: 0 },
+    { facultyId: 'F003', month: '2024-07', present: 19, absent: 0, leave: 2 },
+    { facultyId: 'F004', month: '2024-07', present: 21, absent: 0, leave: 0 },
 ];
 
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 const DAYS_OF_WEEK_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export default function StudentTimetableAttendancePage() {
-  const [viewType, setViewType] = useState('student'); // 'student' or 'faculty'
-  const [mode, setMode] = useState('timetable'); // 'timetable' or 'attendance'
+export default function AcademicsPage() {
+  const [viewType, setViewType] = useState('student'); 
+  const [mode, setMode] = useState('timetable'); 
   
-  // Student filters
-  const [selectedFields, setSelectedFields] = useState([]);
-  const [selectedBatches, setSelectedBatches] = useState([]);
-  const [selectedSections, setSelectedSections] = useState([]);
+  const [selectedFields, setSelectedFields] = useState(studentFieldsData.length > 0 ? [studentFieldsData[0]] : []);
+  const [selectedBatches, setSelectedBatches] = useState(studentBatchesData.length > 0 ? [studentBatchesData[0]] : []);
+  const [selectedSections, setSelectedSections] = useState(studentSectionsData.length > 0 ? [studentSectionsData[0]] : []);
   
-  // Faculty filters
-  const [selectedFaculty, setSelectedFaculty] = useState(''); // Faculty ID
+  const [selectedFaculty, setSelectedFaculty] = useState(mockFacultyList.length > 0 ? mockFacultyList[0].id : '');
 
-  // Timetable and Attendance Data
   const [timetableData, setTimetableData] = useState([]);
   const [attendanceData, setAttendanceData] = useState([]);
 
-  // Mobile timetable view
   const [currentDisplayDate, setCurrentDisplayDate] = useState(startOfDay(new Date()));
 
-  // Detect if mobile view (can be refined with a hook)
   const [isMobileView, setIsMobileView] = useState(false);
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    if (typeof window !== "undefined") {
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
 
@@ -102,14 +102,12 @@ export default function StudentTimetableAttendancePage() {
            selectedSections.includes(item.section)
         );
       }
-    } else { // faculty
+    } else { 
       if (selectedFaculty) {
         filteredTt = mockFacultyTimetableData.filter(item => item.facultyId === selectedFaculty);
-        // For faculty attendance, you might fetch monthly summaries like in faculty-attendance page
-        // This is a simplified example:
         const facultyAttendanceSummary = mockFacultyAttendanceData.find(f => f.facultyId === selectedFaculty);
         if (facultyAttendanceSummary) {
-             filteredAtt = [ // Convert to format suitable for charts
+             filteredAtt = [ 
                 { name: 'Present', value: facultyAttendanceSummary.present },
                 { name: 'Absent', value: facultyAttendanceSummary.absent },
                 { name: 'Leave', value: facultyAttendanceSummary.leave },
@@ -123,7 +121,7 @@ export default function StudentTimetableAttendancePage() {
     setAttendanceData(filteredAtt);
   }, [viewType, selectedFields, selectedBatches, selectedSections, selectedFaculty]);
 
-  const handleCheckboxChange = (type, value, state, setter) => {
+  const handleCheckboxChange = (value, state, setter) => {
     setter(
       state.includes(value)
         ? state.filter(item => item !== value)
@@ -134,13 +132,13 @@ export default function StudentTimetableAttendancePage() {
   const renderCheckboxes = (items, selectedItems, type, groupLabel, setter) => (
     <div className="mb-4">
         <h4 className="font-medium mb-2 text-sm">{groupLabel}</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto p-2 border rounded-md bg-muted/30">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto p-2 border rounded-md bg-muted/30 dark:bg-muted/10">
         {(items || []).map(item => (
-            <div key={item} className="flex items-center space-x-2 p-1 rounded hover:bg-muted">
+            <div key={`${type}-${item}`} className="flex items-center space-x-2 p-1 rounded hover:bg-muted dark:hover:bg-muted/20">
             <Checkbox
                 id={`${type}-${item}`}
                 checked={selectedItems.includes(item)}
-                onCheckedChange={() => handleCheckboxChange(type, item, selectedItems, setter)}
+                onCheckedChange={() => handleCheckboxChange(item, selectedItems, setter)}
             />
             <Label htmlFor={`${type}-${item}`} className="text-xs sm:text-sm font-normal cursor-pointer">{item}</Label>
             </div>
@@ -155,9 +153,12 @@ export default function StudentTimetableAttendancePage() {
       .filter(e => e.day === dayName)
       .sort((a,b) => a.time.localeCompare(b.time));
 
-    const message = viewType === 'student' ? 
-        (selectedFields.length === 0 || selectedBatches.length === 0 || selectedSections.length === 0 ? "Please select field, batch, and section." : "No classes scheduled for this day.")
-        : (selectedFaculty === '' ? "Please select a faculty member." : "No classes scheduled for this day.");
+    let message = "No classes scheduled for this day.";
+    if (viewType === 'student' && (selectedFields.length === 0 || selectedBatches.length === 0 || selectedSections.length === 0)) {
+        message = "Please select field, batch, and section.";
+    } else if (viewType === 'faculty' && selectedFaculty === '') {
+        message = "Please select a faculty member.";
+    }
 
     if (dayEntries.length === 0) {
         return <p className="text-muted-foreground p-4 text-center">{message}</p>;
@@ -166,7 +167,7 @@ export default function StudentTimetableAttendancePage() {
     return (
         <div className="space-y-3">
             {dayEntries.map(entry => (
-                <Card key={entry.id} className="p-3 bg-primary/5">
+                <Card key={entry.id} className="p-3 bg-primary/5 dark:bg-primary/10">
                     <p className="font-semibold text-sm">{entry.courseName} <span className="text-xs text-muted-foreground">({entry.courseCode})</span></p>
                     <p className="text-xs">Time: {entry.time}</p>
                     <p className="text-xs">Room: {entry.roomNo}</p>
@@ -182,9 +183,12 @@ export default function StudentTimetableAttendancePage() {
     const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const timeSlots = ["09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00"]; 
   
-    const message = viewType === 'student' ? 
-        (selectedFields.length === 0 || selectedBatches.length === 0 || selectedSections.length === 0 ? "Please select field, batch, and section." : "No timetable data available.")
-        : (selectedFaculty === '' ? "Please select a faculty member." : "No timetable data available.");
+    let message = "No timetable data available for the current selection.";
+    if (viewType === 'student' && (selectedFields.length === 0 || selectedBatches.length === 0 || selectedSections.length === 0)) {
+        message = "Please select field, batch, and section to view student timetable.";
+    } else if (viewType === 'faculty' && selectedFaculty === '') {
+        message = "Please select a faculty member to view their timetable.";
+    }
 
     if (timetableData.length === 0) {
         return <p className="text-muted-foreground p-4 text-center">{message}</p>;
@@ -194,7 +198,7 @@ export default function StudentTimetableAttendancePage() {
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse border border-border text-xs sm:text-sm">
           <thead>
-            <tr className="bg-muted">
+            <tr className="bg-muted dark:bg-muted/20">
               <th className="border border-border p-1 sm:p-2 whitespace-nowrap">Time</th>
               {daysOfWeek.map(day => (
                 <th key={day} className="border border-border p-1 sm:p-2">{day.substring(0,3)}</th>
@@ -210,7 +214,7 @@ export default function StudentTimetableAttendancePage() {
                   return (
                     <td key={`${day}-${slot}`} className="border border-border p-1 h-16 sm:h-20 align-top min-w-[80px] sm:min-w-[100px]">
                       {entry ? (
-                        <div className="text-[10px] sm:text-xs bg-primary/10 p-1 rounded h-full flex flex-col justify-center">
+                        <div className="text-[10px] sm:text-xs bg-primary/10 dark:bg-primary/20 p-1 rounded h-full flex flex-col justify-center">
                           <p className="font-semibold leading-tight">{entry.courseName} ({entry.courseCode})</p>
                           {viewType === 'student' && <p className="text-muted-foreground leading-tight">{entry.facultyName}</p>}
                           {viewType === 'faculty' && <p className="text-muted-foreground leading-tight">For: {entry.for}</p>}
@@ -230,9 +234,12 @@ export default function StudentTimetableAttendancePage() {
   
 
   const AttendanceChartView = () => {
-    const message = viewType === 'student' ? 
-        (selectedFields.length === 0 || selectedBatches.length === 0 || selectedSections.length === 0 ? "Please select field, batch, and section." : "No attendance data.")
-        : (selectedFaculty === '' ? "Please select a faculty member." : "No attendance data.");
+    let message = "No attendance data for the current selection.";
+     if (viewType === 'student' && (selectedFields.length === 0 || selectedBatches.length === 0 || selectedSections.length === 0)) {
+        message = "Please select field, batch, and section to view student attendance.";
+    } else if (viewType === 'faculty' && selectedFaculty === '') {
+        message = "Please select a faculty member to view their attendance summary.";
+    }
     
     if (attendanceData.length === 0) {
         return <p className="text-muted-foreground p-4 text-center">{message}</p>;
@@ -253,53 +260,53 @@ export default function StudentTimetableAttendancePage() {
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardHeader><CardTitle>Overall Student Attendance</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base sm:text-lg">Overall Student Attendance</CardTitle></CardHeader>
               <CardContent className="h-[250px] sm:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={overallPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                    <Pie data={overallPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={isMobileView ? 60 : 80} labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                         {overallPieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell key={`cell-overall-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
                     <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                    <Legend wrapperStyle={{fontSize: '12px'}}/>
+                    <Legend wrapperStyle={{fontSize: '10px', paddingTop: isMobileView ? '10px' : '0'}}/>
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle>Student Attendance by Course</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base sm:text-lg">Student Attendance by Course</CardTitle></CardHeader>
               <CardContent className="h-[250px] sm:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RechartsBarChart data={attendanceData} layout="vertical" margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
+                  <RechartsBarChart data={attendanceData} layout="vertical" margin={{ top: 5, right: 10, left: isMobileView ? -10 : 5, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" tick={{fontSize: 10}}/>
-                    <YAxis dataKey="course" type="category" width={60} tick={{fontSize: 10}} interval={0}/>
+                    <YAxis dataKey="course" type="category" width={isMobileView ? 50 : 70} tick={{fontSize: isMobileView ? 8 : 10}} interval={0}/>
                     <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                    <Legend wrapperStyle={{fontSize: '12px'}}/>
-                    <Bar dataKey="present" stackId="a" fill="hsl(var(--chart-1))" name="Present" barSize={15} />
-                    <Bar dataKey="absent" stackId="a" fill="hsl(var(--chart-2))" name="Absent" barSize={15} radius={[0, 4, 4, 0]}/>
+                    <Legend wrapperStyle={{fontSize: '10px'}}/>
+                    <Bar dataKey="present" stackId="a" fill="hsl(var(--chart-1))" name="Present" barSize={isMobileView ? 10 : 15} />
+                    <Bar dataKey="absent" stackId="a" fill="hsl(var(--chart-2))" name="Absent" barSize={isMobileView ? 10 : 15} radius={[0, 4, 4, 0]}/>
                   </RechartsBarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
         );
-    } else { // Faculty Attendance View
+    } else { 
         return (
             <Card>
-                <CardHeader><CardTitle>Faculty Attendance Summary</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base sm:text-lg">Faculty Attendance Summary</CardTitle></CardHeader>
                 <CardContent className="h-[250px] sm:h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            <Pie data={attendanceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                            <Pie data={attendanceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={isMobileView ? 60 : 80} labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                                 {attendanceData.map((entry, index) => (
                                     <Cell key={`cell-faculty-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
                             <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                            <Legend wrapperStyle={{fontSize: '12px'}}/>
+                            <Legend wrapperStyle={{fontSize: '10px', paddingTop: isMobileView ? '10px' : '0'}}/>
                         </PieChart>
                     </ResponsiveContainer>
                 </CardContent>
@@ -311,9 +318,17 @@ export default function StudentTimetableAttendancePage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-xl sm:text-3xl font-bold tracking-tight flex items-center"><CalendarIconLucide className="mr-2 sm:mr-3 h-6 w-6 sm:h-8 sm:w-8 text-primary" /> {viewType === 'student' ? 'Student' : 'Faculty'} Timetable & Attendance</h1>
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight flex items-center"><BookCopy className="mr-2 sm:mr-3 h-6 w-6 sm:h-8 sm:w-8 text-primary" /> {viewType === 'student' ? 'Student' : 'Faculty'} Academics</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-             <Select value={viewType} onValueChange={(v) => { setViewType(v); setTimetableData([]); setAttendanceData([]); setSelectedFaculty(''); setSelectedFields([]); setSelectedBatches([]); setSelectedSections([]);}}>
+             <Select value={viewType} onValueChange={(v) => { 
+                 setViewType(v); 
+                 setTimetableData([]); 
+                 setAttendanceData([]); 
+                 setSelectedFaculty(mockFacultyList.length > 0 && v === 'faculty' ? mockFacultyList[0].id : ''); 
+                 setSelectedFields(studentFieldsData.length > 0 && v === 'student' ? [studentFieldsData[0]] : []); 
+                 setSelectedBatches(studentBatchesData.length > 0 && v === 'student' ? [studentBatchesData[0]] : []); 
+                 setSelectedSections(studentSectionsData.length > 0 && v === 'student' ? [studentSectionsData[0]] : []);
+                }}>
                 <SelectTrigger className="w-full sm:w-[150px]">
                     <SelectValue placeholder="Select View Type" />
                 </SelectTrigger>
@@ -333,18 +348,18 @@ export default function StudentTimetableAttendancePage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center"><Filter className="mr-2 h-5 w-5"/> Filters</CardTitle>
+          <CardTitle className="flex items-center text-base sm:text-lg"><Filter className="mr-2 h-5 w-5"/> Filters</CardTitle>
           <CardDescription>Select criteria to view data.</CardDescription>
         </CardHeader>
         <CardContent>
           {viewType === 'student' ? (
             <>
-              {renderCheckboxes(studentFields, selectedFields, 'field', 'Academic Field', setSelectedFields)}
-              {renderCheckboxes(studentBatches, selectedBatches, 'batch', 'Batch Year', setSelectedBatches)}
-              {renderCheckboxes(studentSections, selectedSections, 'section', 'Section', setSelectedSections)}
+              {renderCheckboxes(studentFieldsData, selectedFields, 'field', 'Academic Field', setSelectedFields)}
+              {renderCheckboxes(studentBatchesData, selectedBatches, 'batch', 'Batch Year', setSelectedBatches)}
+              {renderCheckboxes(studentSectionsData, selectedSections, 'section', 'Section', setSelectedSections)}
             </>
-          ) : ( // Faculty filters
-            <div>
+          ) : ( 
+            <div className="space-y-1">
               <Label htmlFor="faculty-select">Faculty Member</Label>
               <Select value={selectedFaculty} onValueChange={setSelectedFaculty}>
                 <SelectTrigger id="faculty-select">
@@ -366,13 +381,13 @@ export default function StudentTimetableAttendancePage() {
       {mode === 'timetable' && (
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Class Timetable</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Class Timetable</CardTitle>
              {isMobileView && (
-                <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center justify-between mt-2 gap-2">
                     <Button variant="outline" size="icon" onClick={() => setCurrentDisplayDate(d => subDays(d,1))}><ChevronLeft className="h-4 w-4"/></Button>
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
+                            <Button variant="outline" className="flex-1 justify-start text-left font-normal text-xs sm:text-sm truncate">
                                 <CalendarIconLucide className="mr-2 h-4 w-4" />
                                 {format(currentDisplayDate, "EEE, MMM d, yyyy")}
                             </Button>
@@ -395,7 +410,7 @@ export default function StudentTimetableAttendancePage() {
       {mode === 'attendance' && (
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Attendance Overview</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Attendance Overview</CardTitle>
             <CardDescription>Graphical representation based on selected filters.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -406,3 +421,5 @@ export default function StudentTimetableAttendancePage() {
     </div>
   );
 }
+
+    

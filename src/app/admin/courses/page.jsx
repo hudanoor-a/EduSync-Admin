@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ const initialCourses = [
   { id: 'PHY105', code: 'PHY105', title: 'Classical Mechanics', description: 'Newtonian mechanics, work, energy, and momentum.', credits: 3, department: 'Physics' },
 ];
 
-const departments = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering", "Biotechnology", "Physics", "Mathematics", "Chemistry", "English", "Management"].filter(d => d !== "");
+const departments = ["Computer Science", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering", "Biotechnology", "Physics", "Mathematics", "Chemistry", "English", "Management"].filter(d => d !== "").map(d => d || "Unnamed Department");
 const ALL_DEPARTMENTS_FILTER_VALUE = "_ALL_DEPARTMENTS_";
 
 export default function CourseManagementPage() {
@@ -38,9 +39,9 @@ export default function CourseManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState(ALL_DEPARTMENTS_FILTER_VALUE);
   
-  const [isFormOpen, setIsFormOpen] = useState(false); // For manual add/edit form
   const [currentCourse, setCurrentCourse] = useState(null);
   const [editingCourseId, setEditingCourseId] = useState(null);
+  const [activeTab, setActiveTab] = useState("view"); // To control active tab
 
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -70,7 +71,7 @@ export default function CourseManagementPage() {
     }
 
     const courseData = {
-      id: editingCourseId || currentCourse.code || `CRS${Date.now()}`, // Use existing ID or code, or generate new one
+      id: editingCourseId || currentCourse.code || `CRS${Date.now()}`, 
       code: currentCourse.code,
       title: currentCourse.title,
       description: currentCourse.description || '',
@@ -82,7 +83,6 @@ export default function CourseManagementPage() {
       setCourses(courses.map(c => c.id === editingCourseId ? courseData : c));
       toast({ title: "Course Updated", description: `"${courseData.title}" has been updated.` });
     } else {
-      // Check for duplicate course code before adding
       if (courses.some(c => c.code === courseData.code)) {
         toast({ title: "Duplicate Course Code", description: `Course code "${courseData.code}" already exists.`, variant: "destructive" });
         return;
@@ -91,12 +91,13 @@ export default function CourseManagementPage() {
       toast({ title: "Course Created", description: `"${courseData.title}" has been added.` });
     }
     resetForm();
+    setActiveTab("view"); // Switch back to view tab
   };
 
   const handleEdit = (course) => {
     setCurrentCourse({ ...course });
     setEditingCourseId(course.id);
-    setIsFormOpen(true);
+    setActiveTab("add"); // Switch to add/edit tab
   };
 
   const handleDelete = async (courseId) => {
@@ -108,7 +109,7 @@ export default function CourseManagementPage() {
   const resetForm = () => {
     setCurrentCourse(null);
     setEditingCourseId(null);
-    setIsFormOpen(false);
+    // setActiveTab("view"); // Let tab switch handle this or set explicitly after submit/cancel
   };
 
   const handleFileUpload = async () => {
@@ -122,20 +123,21 @@ export default function CourseManagementPage() {
       const newCourses = parsedData.map((row, index) => {
         const code = row.code?.toString() || `TEMP_CODE_${Date.now() + index}`;
         return {
-          id: row.id?.toString() || code, // Use code as ID if ID is missing
+          id: row.id?.toString() || code, 
           code: code,
           title: row.title?.toString() || 'Untitled Course',
           description: row.description?.toString() || '',
           credits: Number(row.credits) || 0,
           department: row.department?.toString() || (departments.length > 0 ? departments[0] : 'N/A'),
         };
-      }).filter(nc => !courses.some(ec => ec.code === nc.code)); // Filter out courses with existing codes
+      }).filter(nc => !courses.some(ec => ec.code === nc.code)); 
 
       const skippedCount = parsedData.length - newCourses.length;
 
       setCourses(prev => [...prev, ...newCourses]);
       toast({ title: "Upload Successful", description: `${newCourses.length} courses added. ${skippedCount > 0 ? `${skippedCount} courses skipped due to duplicate codes.` : ''}` });
       setFile(null);
+      setActiveTab("view");
     } catch (error) {
       console.error("Upload error:", error);
       toast({ title: "Upload Failed", description: "Could not process the file. Ensure format is correct.", variant: "destructive" });
@@ -144,7 +146,7 @@ export default function CourseManagementPage() {
     }
   };
 
-  const renderCourseForm = () => ( // This is for manual add/edit
+  const renderCourseForm = () => ( 
     <Card className="mt-6 shadow-lg">
       <CardHeader>
         <CardTitle>{editingCourseId ? 'Edit Course' : 'Add New Course'}</CardTitle>
@@ -174,7 +176,7 @@ export default function CourseManagementPage() {
             </div>
             <div>
               <Label htmlFor="course-department">Department</Label>
-              <Select value={currentCourse?.department || ''} onValueChange={(value) => setCurrentCourse({...currentCourse, department: value})} required>
+              <Select value={currentCourse?.department || ''} onValueChange={(value) => setCurrentCourse({...currentCourse, department: value})} >
                 <SelectTrigger id="course-department"><SelectValue placeholder="Select Department" /></SelectTrigger>
                 <SelectContent>{departments.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
               </Select>
@@ -182,7 +184,7 @@ export default function CourseManagementPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
-          <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">Cancel</Button>
+          <Button type="button" variant="outline" onClick={() => { resetForm(); setActiveTab("view"); }} className="w-full sm:w-auto">Cancel</Button>
           <Button type="submit" className="w-full sm:w-auto">{editingCourseId ? 'Update Course' : 'Add Course'}</Button>
         </CardFooter>
       </form>
@@ -229,11 +231,18 @@ export default function CourseManagementPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center"><BookOpen className="mr-2 sm:mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" /> Course Management</h1>
       </div>
       
-      <Tabs defaultValue="view" className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => {
+        setActiveTab(value);
+        if (value !== "add") { // Reset form if navigating away from add/edit tab manually
+            resetForm();
+        } else if (!editingCourseId && value === "add") { // If switching to "add" tab and not editing, prepare for new entry
+            setCurrentCourse(null); 
+        }
+      }} className="w-full">
         <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4">
-            <TabsTrigger value="view" onClick={() => setIsFormOpen(false)}>View Courses</TabsTrigger>
-            <TabsTrigger value="add" onClick={() => { setCurrentCourse(null); setEditingCourseId(null); setIsFormOpen(true); }}>Add/Edit Manually</TabsTrigger>
-            <TabsTrigger value="upload" onClick={() => setIsFormOpen(false)}>Upload Excel</TabsTrigger>
+            <TabsTrigger value="view">View Courses</TabsTrigger>
+            <TabsTrigger value="add">Add/Edit Manually</TabsTrigger>
+            <TabsTrigger value="upload">Upload Excel</TabsTrigger>
         </TabsList>
 
         <TabsContent value="view">
@@ -282,7 +291,7 @@ export default function CourseManagementPage() {
                           <p className="text-xs text-muted-foreground">Credits: {course.credits}</p>
                         </CardContent>
                         <CardFooter className="pt-3 flex justify-end gap-2 border-t mt-auto">
-                            <Button variant="outline" size="sm" onClick={() => { handleEdit(course); document.querySelector('[data-radix-collection-item][value="add"]')?.click(); }}><Edit3 className="mr-1 h-3 w-3" /> Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleEdit(course)}><Edit3 className="mr-1 h-3 w-3" /> Edit</Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-3 w-3" /> Delete</Button>
@@ -312,8 +321,14 @@ export default function CourseManagementPage() {
         </TabsContent>
 
         <TabsContent value="add">
-            {isFormOpen && renderCourseForm()}
-            {!isFormOpen && <p className="text-muted-foreground text-center py-4">Select "Add/Edit Manually" tab again or click an "Edit" button on a course to open the form.</p>}
+            {/* This content is now rendered if activeTab is 'add' and currentCourse or editingCourseId is set */}
+            { (currentCourse || editingCourseId) ? renderCourseForm() : <p className="text-muted-foreground text-center py-4">Select "Add/Edit Manually" tab and click "Add New Course" button (from View tab, or a new one here) or an "Edit" button on a course to open the form.</p>}
+             {/* Optionally, add a button here to initiate a new course form if that's desired when this tab is active without an edit ongoing */}
+            {activeTab === 'add' && !editingCourseId && !currentCourse && (
+                 <div className="text-center mt-4">
+                     <Button onClick={() => setCurrentCourse({})} > <PlusCircle className="mr-2 h-4 w-4"/> Add New Course Manually</Button>
+                 </div>
+            )}
         </TabsContent>
 
         <TabsContent value="upload">
@@ -323,3 +338,5 @@ export default function CourseManagementPage() {
     </div>
   );
 }
+
+    

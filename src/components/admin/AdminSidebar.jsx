@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -10,12 +11,13 @@ import {
   BarChart3,
   UserCircle,
   BookOpen,
-  ClipboardCheck,
+  ClipboardCheck, // Kept for potential generic use, but specific labels changed
   LogOut,
   Briefcase,
+  BookCopy, // New icon for Academics
 } from 'lucide-react';
 import { Logo } from '@/components/icons/Logo';
-import { cn } from '@/lib/utils.js'; // .js extension
+import { cn } from '@/lib/utils.js'; 
 import {
   Sidebar,
   SidebarHeader,
@@ -25,7 +27,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarSeparator,
-} from '@/components/ui/sidebar'; // Ensure correct import
+} from '@/components/ui/sidebar'; 
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
@@ -33,8 +35,7 @@ const navItems = [
   { href: '/admin/courses', label: 'Course Management', icon: BookOpen },
   { href: '/admin/events', label: 'Event Management', icon: CalendarDays },
   { href: '/admin/invoices', label: 'Invoices', icon: FileText },
-  { href: '/admin/timetable', label: 'Student Timetable & Attendance', icon: ClipboardCheck },
-  { href: '/admin/faculty-attendance', label: 'Faculty Attendance', icon: ClipboardCheck },
+  { href: '/admin/academics', label: 'Timetable & Attendance', icon: BookCopy }, // Updated
   { href: '/admin/leaves', label: 'Leave Requests', icon: Briefcase },
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
@@ -44,7 +45,6 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    // Use collapsible="icon" for desktop icon collapse, mobile handled by Sheet
     <Sidebar collapsible="icon" variant="sidebar" side="left"> 
       <SidebarHeader className="p-4">
         <Link href="/admin" className="flex items-center gap-2 hover:text-primary-foreground group-data-[collapsible=icon]:justify-center">
@@ -94,3 +94,5 @@ export function AdminSidebar() {
     </Sidebar>
   );
 }
+
+    
