@@ -1,11 +1,13 @@
+
 "use client";
 import { StatCard } from '@/components/admin/StatCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, BookOpen, CalendarCheck2, FileText, AlertTriangle, Building } from 'lucide-react'; // Added Building icon
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button'; // Import buttonVariants
 import Link from 'next/link';
+import { cn } from '@/lib/utils.js';
 
 const recentActivity = [
   { id: 1, activity: 'New student "Alice Wonderland" added.', timestamp: '2 hours ago', category: 'Users' },
@@ -36,12 +38,18 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button asChild variant="outline" className="w-full sm:w-auto">
-            <Link href="/admin/users">Add Student</Link> {/* Assuming /admin/users has add student functionality */}
-          </Button>
-          <Button asChild className="w-full sm:w-auto">
-            <Link href="/admin/events">Create Event</Link> {/* Assuming /admin/events has create event functionality */}
-          </Button>
+          <Link 
+            href="/admin/users" 
+            className={cn(buttonVariants({ variant: 'outline' }), "w-full sm:w-auto")}
+          >
+            Add Student
+          </Link>
+          <Link 
+            href="/admin/events"
+            className={cn(buttonVariants({ variant: 'default' }), "w-full sm:w-auto")}
+          >
+            Create Event
+          </Link>
         </div>
       </div>
 
@@ -147,7 +155,12 @@ export default function AdminDashboardPage() {
           <CardContent className="space-y-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-yellow-500/50 bg-yellow-500/10 rounded-md gap-2 sm:gap-0">
               <p className="text-sm text-yellow-700 dark:text-yellow-300 flex-1">5 Faculty leave requests pending approval.</p>
-              <Button variant="outline" size="sm" asChild className="w-full sm:w-auto"><Link href="/admin/leaves">View</Link></Button>
+              <Link 
+                href="/admin/leaves" 
+                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "w-full sm:w-auto")}
+              >
+                View
+              </Link>
             </div>
              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-red-500/50 bg-red-500/10 rounded-md gap-2 sm:gap-0">
               <p className="text-sm text-red-700 dark:text-red-300 flex-1">System backup failed last night.</p>
